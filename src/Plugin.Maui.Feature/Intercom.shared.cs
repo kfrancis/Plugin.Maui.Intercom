@@ -1,4 +1,7 @@
-﻿namespace Plugin.Maui.Intercom;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Plugin.Maui.Intercom;
 
 public static class Intercom
 {

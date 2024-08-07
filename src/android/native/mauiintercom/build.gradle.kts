@@ -45,7 +45,7 @@ dependencies {
     runtimeOnly("com.squareup.retrofit2:retrofit:2.11.0")
     runtimeOnly("com.squareup.retrofit2:converter-gson:2.11.0")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    runtimeOnly("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     runtimeOnly("androidx.activity:activity-compose:1.7.2")
     runtimeOnly("androidx.appcompat:appcompat:1.6.1")
     runtimeOnly("androidx.compose.material:material:1.2.1")

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-android</TargetFrameworks>
 
@@ -93,6 +93,22 @@
 			<Bind>false</Bind>
 			<Visible>false</Visible>
 		</AndroidLibrary>
+        <AndroidLibrary Include="..\android\native\mauiintercom\bin\Release\net8.0-android\outputs\deps\sentry-android-core-7.12.1.aar">
+	        <Bind>false</Bind>
+	        <Visible>false</Visible>
+        </AndroidLibrary>
+        <AndroidLibrary Include="..\android\native\mauiintercom\bin\Release\net8.0-android\outputs\deps\sentry-7.12.1.jar">
+           <Bind>false</Bind>
+           <Visible>false</Visible>
+          </AndroidLibrary>
+          <AndroidLibrary Include="..\android\native\mauiintercom\bin\Release\net8.0-android\outputs\deps\material-desktop-1.6.8.jar">
+   <Bind>false</Bind>
+   <Visible>false</Visible>
+  </AndroidLibrary>
+        <AndroidLibrary Include="..\android\native\mauiintercom\bin\Release\net8.0-android\outputs\deps\retrofit2-kotlinx-serialization-converter-1.0.0.jar">
+         <Bind>false</Bind>
+         <Visible>false</Visible>
+        </AndroidLibrary>
         <AndroidLibrary Include="..\android\native\mauiintercom\bin\Release\net8.0-android\outputs\deps\intercom-sdk-base-15.10.1.aar">
             <Bind>false</Bind>
             <Visible>false</Visible>

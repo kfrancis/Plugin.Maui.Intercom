@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using Intercom;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Plugin.Maui.Intercom;
 
@@ -42,6 +45,8 @@ partial class IntercomImplementation : IIntercom
     //    }
     //}
 
+   
+
     /// <summary>
     /// Initialize Intercom with your API key and App ID.
     /// </summary>
@@ -72,6 +77,11 @@ partial class IntercomImplementation : IIntercom
         //IntercomSdk.RegisterUser(userAttributes.ToJavaMap(), new IntercomCallback(onSuccess, onFailure));
     }
 
+    public void Register(Action? onSuccess = null, Action<string>? onFailure = null)
+    {
+
+    }
+
     /// <summary>
     /// Register a user using their email 
     /// </summary>
@@ -88,7 +98,7 @@ partial class IntercomImplementation : IIntercom
 
         var userAttributes = new Dictionary<string, string>();
         userAttributes.Add("email", email);
-        //IntercomSdk.RegisterUser(userAttributes.ToJavaMap(), new IntercomCallback(onSuccess, onFailure));
+        IntercomSdk.RegisterUser(userAttributes);
     }
 
     public void SetUserHash(string userHash)

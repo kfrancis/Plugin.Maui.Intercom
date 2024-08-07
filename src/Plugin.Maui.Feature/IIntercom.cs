@@ -1,4 +1,4 @@
-﻿namespace Plugin.Maui.Intercom;
+namespace Plugin.Maui.Intercom;
 
 public interface IIntercom
 {
@@ -8,6 +8,8 @@ public interface IIntercom
     /// <param name="apiKey">Your Intercom API key.</param>
     /// <param name="appId">Your Intercom App ID.</param>
     void Initialize(string apiKey, string appId);
+
+    void Register(Action? onSuccess = null, Action<string>? onFailure = null);
 
     /// <summary>
     /// Register a user using their userId 

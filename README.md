@@ -10,7 +10,8 @@
 ## What works so far?
 
 - [x] Can build without error
-- [ ] Can initialize Intercom (runtime) without error
+- [x] Can initialize Intercom (runtime) without error
+- [x] Can register a user without error 
 - [ ] Can show the Intercom Messenger
 - [ ] Works end-to-end on Android
 - [ ] Works end-to-end on iOS
