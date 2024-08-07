@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Intercom</RootNamespace>
+    <AndroidGenerateResourceDesigner>false</AndroidGenerateResourceDesigner>
+    <!--
+      Enable trim analyzers for Android class libraries.
+      To learn more, see: https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming
+    -->
+    <IsTrimmable>true</IsTrimmable>
+    <!--
+      NOTE: you can simply add .aar or .jar files in this directory to be included in the project.
+      To learn more, see: https://learn.microsoft.com/dotnet/maui/migration/android-binding-projects
+    -->
+  </PropertyGroup>
+  
+  <!-- Reference to Android project -->
+  <ItemGroup>
+    <NLIGradleProjectReference Include="../native">
+      <ModuleName>mauiintercom</ModuleName>
+      <!-- Metadata applicable to @(AndroidLibrary) will be used if set, otherwise the following defaults will be used:
+      <Bind>true</Bind>
+      <Pack>true</Pack>
+      -->
+    </NLIGradleProjectReference>
+  </ItemGroup>
+
+  <!-- Reference to NuGet for building bindings -->
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Maui.NativeLibraryInterop.BuildTasks" Version="0.0.1-pre1" PrivateAssets="all" />
+    <PackageReference Include="Dependencies.Gradle" Version="8.6.0.1" />
+    <PackageReference Include="nventive.binding.kotlinx.serialization.json" Version="1.2.2" />
+    <PackageReference Include="Square.OkHttp3" Version="4.12.0.5" />
+    <PackageReference Include="Square.Retrofit2" Version="2.11.0.1" />
+    <PackageReference Include="Square.Retrofit2.ConverterGson" Version="2.11.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+      <GradleImplementation Include="com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Jar\" />
+  </ItemGroup>
+</Project>
