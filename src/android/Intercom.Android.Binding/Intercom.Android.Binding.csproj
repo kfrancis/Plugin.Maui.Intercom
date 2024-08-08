@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-android</TargetFramework>
     <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
@@ -31,14 +31,6 @@
   <!-- Reference to NuGet for building bindings -->
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Maui.NativeLibraryInterop.BuildTasks" Version="0.0.1-pre1" PrivateAssets="all" />
-    <PackageReference Include="Dependencies.Gradle" Version="8.6.0.1" />
-    <PackageReference Include="nventive.binding.kotlinx.serialization.json" Version="1.2.2" />
-    <PackageReference Include="Square.OkHttp3" Version="4.12.0.5" />
-    <PackageReference Include="Square.Retrofit2" Version="2.11.0.1" />
-    <PackageReference Include="Square.Retrofit2.ConverterGson" Version="2.11.0.1" />
-  </ItemGroup>
-  <ItemGroup>
-      <GradleImplementation Include="com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Jar\" />

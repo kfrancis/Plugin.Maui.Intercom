@@ -37,8 +37,12 @@ configurations.all {
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material:material")
     implementation("io.intercom.android:intercom-sdk-base:15.10.1")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
     runtimeOnly("com.google.code.gson:gson:2.11.0")
     runtimeOnly("com.intercom:twig:1.3.0")
     runtimeOnly("com.squareup.okhttp3:okhttp:4.12.0")
@@ -48,9 +52,6 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     runtimeOnly("androidx.activity:activity-compose:1.7.2")
     runtimeOnly("androidx.appcompat:appcompat:1.6.1")
-    runtimeOnly("androidx.compose.material:material:1.2.1")
-    runtimeOnly("androidx.compose.material3:material3:1.2.1")
-    runtimeOnly("androidx.compose.ui:ui-tooling-preview:1.6.8")
     runtimeOnly("androidx.constraintlayout:constraintlayout:2.1.4")
     runtimeOnly("androidx.core:core-ktx:1.13.1")
     runtimeOnly("androidx.exifinterface:exifinterface:1.3.7")

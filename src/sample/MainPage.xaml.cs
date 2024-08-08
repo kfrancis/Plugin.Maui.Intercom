@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using CommunityToolkit.Mvvm.DependencyInjection;
@@ -41,20 +42,37 @@ public partial class MainPage : ContentPage
         var intercom = Ioc.Default.GetRequiredService<IIntercom>();
         var intercomApiKey = _configuration.GetValue("Intercom:DroidApiKey", string.Empty) ?? string.Empty;
         var intercomAppId = _configuration.GetValue("Intercom:AppId", string.Empty) ?? string.Empty;
-        var intercomSecret = _configuration.GetValue("Intercom:DroidSecret", string.Empty) ?? string.Empty;
-        intercom?.Initialize(intercomApiKey, intercomAppId);
+
+        intercom.Initialize(intercomApiKey, intercomAppId);
 
         //// If user verification is not on, you don't need to set the user hash
-        //intercom?.RegisterWithEmail("test@test.com");
+        //intercom.Logout();
+        //intercom.RegisterWithEmail("test@test.com");
 
         //// If user verification is on, you need to set the user hash
-        //intercom?.SetUserHash(GetHMAC(intercomSecret, "test@test.com"));
-        //intercom?.RegisterWithEmail("test@test.com");
+        //var intercomSecret = _configuration.GetValue("Intercom:DroidSecret", string.Empty) ?? string.Empty;
+        //intercom.Logout();
+        //intercom.SetUserHash(GetHMAC(intercomSecret, "test@test.com"));
+        //intercom.RegisterWithEmail("test@test.com", () =>
+        //{
+        //    Debug.WriteLine("Intercom Registration SUCCESSFUL");
+        //}, (string? msg) =>
+        //{
+        //    Debug.WriteLine("Intercom Registration FAILED: '{ErrorMessage}'", msg ?? string.Empty);
+        //});
 
         // If there's no user info at all, you can just call register
-        intercom?.Register();
+        //intercom.Logout();
+        //intercom.Register(() =>
+        //{
+        //    Debug.WriteLine("Intercom Registration SUCCESSFUL");
+        //}, (string? msg) =>
+        //{
+        //    Debug.WriteLine("Intercom Registration FAILED: '{ErrorMessage}'", msg ?? string.Empty);
+        //});
 
-        intercom?.PresentHelpCenter();
+        intercom.SetVisible(true);
+        //intercom?.PresentHelpCenter();
     }
 
     async void OnDocsButtonClicked(object sender, EventArgs e)

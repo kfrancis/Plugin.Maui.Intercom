@@ -6,46 +6,31 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Plugin.Maui.Intercom;
 
-public static class DictionaryExtensions
-{
-    public static Java.Util.IMap ToJavaMap(this IDictionary<string, string> dictionary)
-    {
-        var javaMap = new Java.Util.HashMap();
-        foreach (var kvp in dictionary)
-        {
-            javaMap.Put(new Java.Lang.String(kvp.Key), new Java.Lang.String(kvp.Value));
-        }
-        return javaMap;
-    }
-}
-
 partial class IntercomImplementation : IIntercom
 {
-    //class IntercomCallback : Java.Lang.Object, IIntercomCallback
-    //{
-    //    private readonly Action? _onSuccess;
-    //    private readonly Action<string?>? _onFailure;
+    class IntercomCallback : Java.Lang.Object, IIntercomCallback
+    {
+        private readonly Action? _onSuccess;
+        private readonly Action<string?>? _onFailure;
 
-    //    public IntercomCallback(Action? onSuccess, Action<string>? onFailure)
-    //    {
-    //        _onSuccess = onSuccess;
-    //        _onFailure = onFailure;
-    //    }
+        public IntercomCallback(Action? onSuccess, Action<string?>? onFailure)
+        {
+            _onSuccess = onSuccess;
+            _onFailure = onFailure;
+        }
 
-    //    public void OnFailure(string? error)
-    //    {
-    //        if (_onFailure != null)
-    //            _onFailure.Invoke(error);
-    //    }
+        public void OnFailure(string? error)
+        {
+            if (_onFailure != null)
+                _onFailure.Invoke(error);
+        }
 
-    //    public void OnSuccess()
-    //    {
-    //        if (_onSuccess != null)
-    //            _onSuccess.Invoke();
-    //    }
-    //}
-
-   
+        public void OnSuccess()
+        {
+            if (_onSuccess != null)
+                _onSuccess.Invoke();
+        }
+    }
 
     /// <summary>
     /// Initialize Intercom with your API key and App ID.
@@ -64,7 +49,7 @@ partial class IntercomImplementation : IIntercom
     /// <param name="onSuccess">An optional callback used when the registration is successful</param>
     /// <param name="onFailure">An optional callback used when the registration is not successful</param>
     /// <exception cref="ArgumentException">Thrown when the userId is null or empty</exception>
-    public void RegisterWithUserId(string userId, Action? onSuccess = null, Action<string>? onFailure = null)
+    public void RegisterWithUserId(string userId, Action? onSuccess = null, Action<string?>? onFailure = null)
     {
         if (string.IsNullOrEmpty(userId))
         {
@@ -73,8 +58,7 @@ partial class IntercomImplementation : IIntercom
 
         var userAttributes = new Dictionary<string, string>();
         userAttributes.Add("userId", userId);
-        IntercomSdk.RegisterUser(userAttributes);
-        //IntercomSdk.RegisterUser(userAttributes.ToJavaMap(), new IntercomCallback(onSuccess, onFailure));
+        IntercomSdk.RegisterUser(userAttributes, new IntercomCallback(onSuccess, onFailure));
     }
 
     public void Register(Action? onSuccess = null, Action<string>? onFailure = null)
@@ -89,7 +73,7 @@ partial class IntercomImplementation : IIntercom
     /// <param name="onSuccess">An optional callback used when the registration is successful</param>
     /// <param name="onFailure">An optional callback used when the registration is not successful</param>
     /// <exception cref="ArgumentException">Thrown when the email is null or empty</exception>
-    public void RegisterWithEmail(string email, Action? onSuccess = null, Action<string>? onFailure = null)
+    public void RegisterWithEmail(string email, Action? onSuccess = null, Action<string?>? onFailure = null)
     {
         if (string.IsNullOrEmpty(email))
         {
@@ -98,7 +82,8 @@ partial class IntercomImplementation : IIntercom
 
         var userAttributes = new Dictionary<string, string>();
         userAttributes.Add("email", email);
-        IntercomSdk.RegisterUser(userAttributes);
+        IIntercomCallback callback = new IntercomCallback(onSuccess, onFailure);
+        IntercomSdk.RegisterUser(userAttributes, callback);
     }
 
     public void SetUserHash(string userHash)
@@ -133,7 +118,7 @@ partial class IntercomImplementation : IIntercom
 
     public void SetBottomPadding(int bottomPadding)
     {
-        IntercomSdk.SetBottomPadding(new Java.Lang.Integer(bottomPadding));
+        IntercomSdk.SetBottomPadding(Java.Lang.Integer.ValueOf(bottomPadding));
     }
 
     public void Logout()

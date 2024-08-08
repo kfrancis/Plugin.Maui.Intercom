@@ -1,7 +1,9 @@
-﻿<metadata>
+<metadata>
     <!-- Make sure the package id and name reflects the new binding name -->
     <attr path="/api/package[@name='com.intercom.mauiintercom']" name="managedName">Intercom</attr>
 	<!--<attr path="/api/package[@name='com.intercom.mauiintercom']/interface[@name='IIntercomCallback']" name="managedName">IIntercomCallback</attr>
 	<attr path="/api/package[@name='com.intercom.mauiintercom']/interface[@name='IIntercomCallback']/method[@name='onSuccess']" name="managedName">OnSuccess</attr>
 	<attr path="/api/package[@name='com.intercom.mauiintercom']/interface[@name='IIntercomCallback']/method[@name='onFailure']" name="managedName">OnFailure</attr>-->
+
+    <!--<remove-node path="/api/package[@name='io.intercom.android.sdk']/interface[@name='IntercomStatusCallback']" />-->    
 </metadata>

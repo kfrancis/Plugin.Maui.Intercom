@@ -9,12 +9,12 @@ partial class IntercomImplementation : IIntercom
         throw new NotImplementedException();
     }
 
-    public void RegisterWithUserId(string userId, Action? onSuccess = null, Action<string>? onFailure = null)
+    public void RegisterWithUserId(string userId, Action? onSuccess = null, Action<string?>? onFailure = null)
     {
         throw new NotImplementedException();
     }
 
-    public void RegisterWithEmail(string email, Action? onSuccess = null, Action<string>? onFailure = null)
+    public void RegisterWithEmail(string email, Action? onSuccess = null, Action<string?>? onFailure = null)
     {
         throw new NotImplementedException();
     }

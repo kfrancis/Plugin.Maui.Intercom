@@ -19,5 +19,20 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep all classes in the Intercom SDK
 -keep class io.intercom.android.** { *; }
 -keep class com.intercom.** { *; }
+
+# Explicitly keep the IntercomStatusCallback interface
+-keep interface io.intercom.android.sdk.IntercomStatusCallback { *; }
+
+# Keep all members of classes implementing this interface
+-keepclassmembers class * implements io.intercom.android.sdk.IntercomStatusCallback { *; }
+
+# Keep annotations
+-keepattributes *Annotation*
+
+# Keep line numbers and source file names for debugging purposes
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable

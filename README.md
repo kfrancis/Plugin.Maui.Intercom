@@ -10,6 +10,7 @@
 ## What works so far?
 
 - [x] Can build without error
+- [x] Callback from platform into .net land works (android)
 - [x] Can initialize Intercom (runtime) without error
 - [x] Can register a user without error 
 - [ ] Can show the Intercom Messenger
