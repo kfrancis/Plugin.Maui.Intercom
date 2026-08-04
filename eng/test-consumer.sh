@@ -11,23 +11,27 @@
 #   - the native Intercom framework + resources land in the .app.
 #
 # Usage: eng/test-consumer.sh --version <pkg-version> --feed <dir-with-nupkgs>
-#                             [--tfm net10.0-ios|net9.0-ios] [--clear-cache]
+#                             [--tfm net10.0-ios|net9.0-ios] [--clear-cache] [--fast-simulator]
 #
 # --tfm picks the consumer band. The packages multi-target net9.0-ios and net10.0-ios, and
 # the two restore completely different assets out of the same nupkg, so a green net10 run
 # says nothing about net9. CI runs both.
+#
+# --fast-simulator drops AOT from the simulator build only (see the note on that step).
 set -euo pipefail
 
 VERSION=""
 FEED=""
 TFM="net10.0-ios"
 CLEAR_CACHE="false"
+FAST_SIMULATOR="false"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="$2"; shift 2 ;;
     --feed)    FEED="$(cd "$2" && pwd)"; shift 2 ;;
     --tfm)     TFM="$2"; shift 2 ;;
     --clear-cache) CLEAR_CACHE="true"; shift ;;
+    --fast-simulator) FAST_SIMULATOR="true"; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -305,7 +309,21 @@ echo "── Simulator build (iossimulator-arm64, unsigned) ──────"
 # on the runner's /usr/bin/codesign rather than on the packages under test: it
 # failed on macos-26/Xcode 26.6 with "App.app: invalid or unsupported format for
 # signature" on a build whose only change was managed code in the plugin.
-dotnet build App.csproj -c Release -r iossimulator-arm64 -p:EnableCodeSigning=false
+#
+# --fast-simulator runs this one build under the interpreter. _RunAotCompiler is forced
+# true for the iossimulator-arm64 RID specifically, so by default this step full-AOTs the
+# whole app — the single longest phase in the job, and on the net9 band far longer than on
+# net10. The device build below AOTs for real and is the coverage that ships, so what this
+# gives up is a duplicate AOT of the same managed code for a different RID. Restore,
+# link and native embedding are still exercised here either way.
+SIM_ARGS=()
+if [[ "$FAST_SIMULATOR" == "true" ]]; then
+  echo "(interpreter mode: simulator AOT skipped; the device build below still AOTs)"
+  SIM_ARGS+=(-p:MtouchInterpreter=all)
+fi
+# ${SIM_ARGS[@]+"..."} rather than a bare "${SIM_ARGS[@]}": macOS ships bash 3.2, where
+# expanding an empty array under `set -u` is an unbound-variable error.
+dotnet build App.csproj -c Release -r iossimulator-arm64 -p:EnableCodeSigning=false ${SIM_ARGS[@]+"${SIM_ARGS[@]}"}
 
 echo ""
 echo "── Device build (ios-arm64, unsigned) ──────────────────"

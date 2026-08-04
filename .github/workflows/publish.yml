@@ -62,6 +62,7 @@ jobs:
   # runs first and catches SDK drift before the expensive macOS jobs start.
   api-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -88,6 +89,7 @@ jobs:
   # name members that actually exist (the half api-coverage.sh cannot check).
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -106,6 +108,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
@@ -135,6 +138,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   android:
     runs-on: windows-latest
+    timeout-minutes: 45
     needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
@@ -185,6 +189,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   ios-binding:
     runs-on: macos-26
+    timeout-minutes: 45
     needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
@@ -259,6 +264,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   main-package:
     runs-on: macos-26
+    timeout-minutes: 30
     needs: [ version, android, ios-binding ]
     permissions:
       contents: read
@@ -334,6 +340,7 @@ jobs:
   # this repo cannot otherwise reach.
   consumer-test:
     runs-on: macos-26
+    timeout-minutes: 75
     needs: [ version, main-package ]
     permissions:
       contents: read
@@ -350,11 +357,18 @@ jobs:
         # ios-binding job builds a net9 library under 26.6 without complaint — only an
         # app build validates Xcode. Suppressing it with ValidateXcodeVersion=false would
         # defeat the point of this job, which exists to prove a real consumer app builds.
+        # fast_simulator drops AOT from the simulator build on the net9 band only. That
+        # step full-AOTs by default (_RunAotCompiler is forced true for the
+        # iossimulator-arm64 RID) and on net9 it ran several times longer than the same
+        # step on net10. The device build still AOTs on both bands, so the coverage given
+        # up is a duplicate AOT of the same code for a different RID.
         include:
           - tfm: net9.0-ios
             xcode: /Applications/Xcode_26.5.app
+            fast_simulator: '--fast-simulator'
           - tfm: net10.0-ios
             xcode: /Applications/Xcode_26.6.app
+            fast_simulator: ''
     steps:
       - uses: actions/checkout@v5
         with:
@@ -383,7 +397,7 @@ jobs:
       - name: Clean-room consumer test (${{ matrix.tfm }}, simulator + ios-arm64)
         run: |
           chmod +x eng/test-consumer.sh
-          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --tfm ${{ matrix.tfm }} --clear-cache
+          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --tfm ${{ matrix.tfm }} --clear-cache ${{ matrix.fast_simulator }}
 
       - name: Diagnostics on failure
         if: failure()
@@ -409,6 +423,7 @@ jobs:
   deploy:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [ version, main-package, consumer-test ]
     permissions:
       id-token: write
