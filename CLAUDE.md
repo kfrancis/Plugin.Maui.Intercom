@@ -92,6 +92,11 @@ Four things follow, all of which have bitten:
 - **The iOS binding cannot be built off macOS**, so `build.ps1` narrows the plugin and
   sample to their Android TFMs (via the overridable TFM properties) instead of pointing
   restore at a published iOS binding: no published version carries a net9.0-ios asset.
+- **`CompressBindingResourcePackage` has to be forced to `true`.** Its default, `auto`,
+  compresses only when the xcframework has symlinks — Intercom's has none — and the two
+  bands then disagreed: net10 packed a `.resources.zip`, net9 a loose `.resources/` tree
+  worth 76 NU5123 long-path warnings that would land past MAX_PATH under a Windows
+  consumer's package cache. Both bands' iOS SDKs consume either layout.
 
 `eng/validate-packages.sh` asserts every band in every package, and CI's consumer test
 runs once per iOS band — a green net10 run says nothing about net9.

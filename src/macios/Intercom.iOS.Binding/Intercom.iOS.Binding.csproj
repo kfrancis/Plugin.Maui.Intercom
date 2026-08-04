@@ -35,6 +35,25 @@
          iOS bgen pipeline for the generated ApiDefinition (SWIFTBIND004). -->
     <SwiftFrameworkType>ObjC</SwiftFrameworkType>
     <IsBindingProject>true</IsBindingProject>
+
+    <!-- Ship the native payload as Intercom.iOS.Binding.resources.zip on every band.
+
+         The default is 'auto' — compress only when the xcframework contains symlinks —
+         and Intercom's does not, so the two bands disagreed: net10.0-ios26.0 packed a
+         single .resources.zip while net9.0-ios18.0 packed a loose
+         Intercom.iOS.Binding.resources/ directory tree. That cost 76 NU5123 warnings,
+         one per entry NuGet considers too long, e.g.
+
+           lib/net9.0-ios18.0/Intercom.iOS.Binding.resources/Intercom.xcframework/
+             ios-arm64_x86_64-simulator/Intercom.framework/Modules/
+             Intercom.swiftmodule/arm64-apple-ios-simulator.private.swiftinterface
+
+         Extracted under a Windows consumer's ~/.nuget/packages that lands past MAX_PATH,
+         so the warning is real and not cosmetic. Both bands' iOS SDKs consume either
+         layout (_ReferencesWithNativeReferencesToExpand probes .resources and
+         .resources.zip), so forcing the zip is the layout that works everywhere and
+         keeps the two bands byte-comparable. -->
+    <CompressBindingResourcePackage>true</CompressBindingResourcePackage>
   </PropertyGroup>
 
   <!-- NuGet Package Properties -->
