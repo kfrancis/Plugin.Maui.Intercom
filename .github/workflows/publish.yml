@@ -70,8 +70,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # chmod like every other eng/ script here: these are authored on Windows, where
+      # core.filemode is false, so a `git add` can silently drop the exec bit.
       - name: Check native API coverage
-        run: eng/api-coverage.sh --strict
+        run: |
+          chmod +x eng/api-coverage.sh
+          eng/api-coverage.sh --strict
 
   # ──────────────────────────────────────────────────────────────────────────
   # Plain net10.0 — no MAUI workloads, no platform SDKs. Covers the shared models,
