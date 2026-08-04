@@ -32,6 +32,11 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
 
+            const apiHeaders = {
+              accept: "application/vnd.github+json",
+              "x-github-api-version": "2026-03-10"
+            };
+
             function readProperty(xml, propertyName) {
               const expression = new RegExp(
                 `<${propertyName}>\\s*([^<]+?)\\s*</${propertyName}>`
@@ -78,7 +83,8 @@ jobs:
             const propsResponse = await github.rest.repos.getContent({
               owner,
               repo,
-              path: "Directory.Build.props"
+              path: "Directory.Build.props",
+              headers: apiHeaders
             });
 
             if (
@@ -112,7 +118,8 @@ jobs:
                 owner,
                 repo,
                 state: "all",
-                per_page: 100
+                per_page: 100,
+                headers: apiHeaders
               }
             );
 
@@ -169,7 +176,8 @@ jobs:
                 owner,
                 repo,
                 title,
-                body
+                body,
+                headers: apiHeaders
               });
 
               core.notice(
@@ -182,7 +190,8 @@ jobs:
             // iOS: Intercom publishes official releases through GitHub.
             const iosRelease = await github.rest.repos.getLatestRelease({
               owner: "intercom",
-              repo: "intercom-ios"
+              repo: "intercom-ios",
+              headers: apiHeaders
             });
 
             const latestIosVersion =
