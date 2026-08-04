@@ -1,15 +1,18 @@
-# Migrating from 0.x to 1.0
+# Migrating from 0.7/0.8 to 0.9
 
-1.0 replaces the whole `IIntercom` surface. The 0.x API covered roughly a third of the native
-Intercom SDKs and lost information in several of the members it did have; 1.0 covers all of it
+0.9 replaces the whole `IIntercom` surface. The old API covered roughly a third of the native
+Intercom SDKs and lost information in several of the members it did have; 0.9 covers all of it
 and the coverage is enforced by `eng/api-coverage.sh` in CI.
+
+This is a breaking change inside 0.x on purpose: the version stays below 1.0 until the new
+surface has been exercised on real devices, and 0.x carries no compatibility promise.
 
 Nothing was deprecated in place, because most of the changes are signature changes rather than
 renames — an `[Obsolete]` shim would have had to guess at the parts that were missing.
 
 ## Member mapping
 
-| 0.x | 1.0 | Why |
+| 0.7/0.8 | 0.9 | Why |
 | --- | --- | --- |
 | `Initialize(apiKey, appId)` | unchanged | On Android it now initializes from the `Application` rather than the current `Activity`, so calling it before the first window exists works instead of silently failing. |
 | `Register(onSuccess, onFailure)` | `await LoginUnidentifiedUserAsync()` | Failures carry the native error code instead of only a message. |
@@ -29,16 +32,16 @@ renames — an `[Obsolete]` shim would have had to guess at the parts that were 
 
 ## Error handling
 
-0.x reported failures through `Action<string?>` and dropped the error code. 1.0 faults the
-returned `Task` with `IntercomException`:
+The old API reported failures through `Action<string?>` and dropped the error code. 0.9
+faults the returned `Task` with `IntercomException`:
 
 ```csharp
-// 0.x
+// 0.7/0.8
 Intercom.Default.RegisterWithEmail(email,
     onSuccess: () => { },
     onFailure: error => logger.LogError("Registration failed: {Error}", error));
 
-// 1.0
+// 0.9
 try
 {
     await Intercom.Default.LoginUserAsync(new IntercomUserAttributes { Email = email });
@@ -55,13 +58,13 @@ This matters in practice because the Messenger shows the same generic error scre
 every failure — the code is the only thing that distinguishes "already logged in" from a
 network problem or a workspace misconfiguration.
 
-## New in 1.0
+## New in 0.9
 
-None of these existed in 0.x on either platform:
+None of these existed in 0.7/0.8 on either platform:
 
 - **User attributes** — `IntercomUserAttributes`, `IntercomCompany`, `UpdateUserAsync`,
   `FetchLoggedInUserAttributes`
-- **Messenger Security** — `SetUserJwt`. Workspaces that enforce it could not use 0.x at all.
+- **Messenger Security** — `SetUserJwt`. Workspaces that enforce it could not use 0.7/0.8 at all.
 - **Fin Actions** — `SetAuthTokensAsync`
 - **Unread conversations** — `UnreadConversationCount`, `UnreadConversationCountChanged`
 - **Help Center data** — `FetchHelpCenterCollectionsAsync`, `FetchHelpCenterCollectionAsync`,

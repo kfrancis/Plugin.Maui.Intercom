@@ -57,6 +57,8 @@ It is a separate, opt-in package because Intercom's POM asks for `io.ably:ably-a
 | Android  | 17.4.1              |
 | iOS      | 18.7.2              |
 
+> **Breaking change (0.9.0):** the whole `IIntercom` surface was replaced. The previous API reached about a third of the native Intercom SDKs; 0.9 reaches all of it, and `eng/api-coverage.sh` fails the build if that stops being true. Every member was renamed or resignatured — see [MIGRATION.md](MIGRATION.md). Still 0.x deliberately: the surface has not been exercised on real devices long enough to promise compatibility.
+
 > **Breaking change (0.7.0):** the plugin now targets .NET 10 only. .NET 9 (`net9.0-*`) consumers must stay on 0.6.x or earlier. The iOS binding was replaced: the former `MauiIntercomMaciOS` wrapper types and the public `DictionaryExtensions.ToNSDictionary` iOS helper were removed. The `IIntercom` interface itself is source-compatible, with three additions: `LogEvent(string name)`, `EnableLogging()` and `IsUserLoggedIn` — all implemented on both platforms.
 
 ## Setup
@@ -101,7 +103,7 @@ No additional configuration is required for iOS. The native `Intercom.framework`
 
 ## API Usage
 
-> Upgrading from 0.x? Every member was renamed or resignatured in 1.0 — see
+> Upgrading from 0.7/0.8? Every member was renamed or resignatured in 0.9 — see
 > [MIGRATION.md](MIGRATION.md) for the mapping.
 
 ### The whole surface

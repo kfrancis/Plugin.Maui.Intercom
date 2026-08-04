@@ -404,7 +404,7 @@ partial class IntercomImplementation : IIntercom
 
         if (attributes.CustomAttributes.Count > 0)
         {
-            native.CustomAttributes = ToNativeDictionary(attributes.CustomAttributes, nameof(attributes.CustomAttributes));
+            native.CustomAttributes = ToNativeAttributes(attributes.CustomAttributes, nameof(attributes.CustomAttributes));
         }
 
         if (attributes.Companies.Count > 0)
@@ -436,7 +436,7 @@ partial class IntercomImplementation : IIntercom
 
         if (company.CustomAttributes.Count > 0)
         {
-            native.CustomAttributes = ToNativeDictionary(company.CustomAttributes, nameof(company.CustomAttributes));
+            native.CustomAttributes = ToNativeAttributes(company.CustomAttributes, nameof(company.CustomAttributes));
         }
 
         return native;
@@ -449,11 +449,37 @@ partial class IntercomImplementation : IIntercom
         return NSDictionary.FromObjectsAndKeys(values, keys);
     }
 
-    // Takes the pair sequence rather than a dictionary interface: IDictionary and
-    // IReadOnlyDictionary do not convert to each other, and both shapes reach this.
+    // The generated binding mirrors the headers' nullability and genericity, so the shape
+    // needed differs by call site: ICMUserAttributes.customAttributes and
+    // ICMCompany.customAttributes are declared NSDictionary<NSString *, id> and bind as
+    // NSDictionary<NSString, NSObject>, while logEventWithName:metaData: takes a bare
+    // NSDictionary. Same content, two static types — hence the split below.
+    //
+    // Both take the pair sequence rather than a dictionary interface: IDictionary and
+    // IReadOnlyDictionary do not convert to each other, and both shapes reach here.
     private static NSDictionary ToNativeDictionary(IEnumerable<KeyValuePair<string, object?>> source, string paramName)
     {
-        var keys = new List<NSObject>();
+        var (keys, values) = ToNativeEntries(source, paramName);
+        // Widened to NSObject[] so overload resolution lands on
+        // FromObjectsAndKeys(NSObject[], NSObject[]) rather than the object[] overload,
+        // which NSString[] also converts to.
+        NSObject[] objectKeys = keys;
+        return NSDictionary.FromObjectsAndKeys(values, objectKeys);
+    }
+
+    private static NSDictionary<NSString, NSObject> ToNativeAttributes(
+        IEnumerable<KeyValuePair<string, object?>> source,
+        string paramName)
+    {
+        var (keys, values) = ToNativeEntries(source, paramName);
+        return NSDictionary<NSString, NSObject>.FromObjectsAndKeys(values, keys);
+    }
+
+    private static (NSString[] Keys, NSObject[] Values) ToNativeEntries(
+        IEnumerable<KeyValuePair<string, object?>> source,
+        string paramName)
+    {
+        var keys = new List<NSString>();
         var values = new List<NSObject>();
         foreach (var (key, value) in source)
         {
@@ -466,7 +492,7 @@ partial class IntercomImplementation : IIntercom
             values.Add(ToNativeValue(value, key, paramName));
         }
 
-        return NSDictionary.FromObjectsAndKeys([.. values], [.. keys]);
+        return ([.. keys], [.. values]);
     }
 
     // Intercom stores custom attributes and event metadata as typed values, so the NSObject

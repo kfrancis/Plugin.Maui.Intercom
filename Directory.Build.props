@@ -3,9 +3,12 @@
 
   <!-- Shared version for all packages -->
   <PropertyGroup>
-    <!-- 1.0.0: the v2 API surface is a breaking change (see MIGRATION.md). CI overrides this
-         with the MinVer-computed version, so the release tag must be v1.0.0 or later. -->
-    <IntercomPluginVersion Condition="'$(IntercomPluginVersion)' == ''">1.0.0</IntercomPluginVersion>
+    <!-- 0.9.0: the new API surface replaces the 0.7/0.8 one wholesale (see MIGRATION.md).
+         Still 0.x deliberately — that carries no compatibility promise, which is what a
+         breaking release needs while the surface is being shaken out on real devices.
+         CI overrides this with the MinVer-computed version, so the release tag decides:
+         tag v0.9.0 for this, and 1.0.0 once it has been validated. -->
+    <IntercomPluginVersion Condition="'$(IntercomPluginVersion)' == ''">0.9.0</IntercomPluginVersion>
     <!-- Use Version if provided, otherwise use IntercomPluginVersion -->
     <BindingPackageVersion Condition="'$(Version)' != ''">$(Version)</BindingPackageVersion>
     <BindingPackageVersion Condition="'$(Version)' == ''">$(IntercomPluginVersion)</BindingPackageVersion>
