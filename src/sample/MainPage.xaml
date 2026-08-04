@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <ScrollView>
-        <VerticalStackLayout Padding="30,0" Spacing="15">
+        <VerticalStackLayout Padding="30,0" Spacing="12">
             <Image
                 Aspect="AspectFit"
                 HeightRequest="120"
@@ -27,45 +27,163 @@
                 FontAttributes="Bold"
                 Text="Not initialized" />
 
+            <Label
+                x:Name="UnreadLabel"
+                Text="Unread conversations: —" />
+
+            <!--  Lifecycle  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Lifecycle" />
+
             <Button
                 Clicked="OnInitializeClicked"
                 HorizontalOptions="Fill"
                 Text="Initialize" />
 
             <Button
-                Clicked="OnRegisterUnidentifiedClicked"
+                Clicked="OnLogoutClicked"
                 HorizontalOptions="Fill"
-                Text="Register unidentified user" />
+                Text="Logout" />
+
+            <!--  Identity  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Identity" />
 
             <Button
-                Clicked="OnRegisterIdentifiedClicked"
+                Clicked="OnLoginUnidentifiedClicked"
                 HorizontalOptions="Fill"
-                Text="Register identified user (email)" />
+                Text="Log in unidentified user" />
 
             <Button
-                Clicked="OnPresentMessengerClicked"
+                Clicked="OnLoginIdentifiedClicked"
                 HorizontalOptions="Fill"
-                Text="Present messenger" />
+                Text="Log in identified user (email + attributes)" />
+
+            <Entry
+                x:Name="NameEntry"
+                Placeholder="Name"
+                Text="Sample User" />
+
+            <Entry
+                x:Name="PhoneEntry"
+                Keyboard="Telephone"
+                Placeholder="Phone"
+                Text="+353 1 234 5678" />
+
+            <Button
+                Clicked="OnUpdateUserClicked"
+                HorizontalOptions="Fill"
+                Text="Update user (name, phone, company, custom attribute)" />
+
+            <Button
+                Clicked="OnFetchLoggedInUserClicked"
+                HorizontalOptions="Fill"
+                Text="Fetch logged-in user attributes" />
+
+            <!--  Presentation  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Presentation" />
+
+            <Picker
+                x:Name="SpacePicker"
+                SelectedIndex="0"
+                Title="Space" />
+
+            <Button
+                Clicked="OnPresentSpaceClicked"
+                HorizontalOptions="Fill"
+                Text="Present space" />
 
             <Button
                 Clicked="OnPresentComposerClicked"
                 HorizontalOptions="Fill"
                 Text="Present message composer" />
 
+            <Picker
+                x:Name="ContentTypePicker"
+                SelectedIndex="0"
+                Title="Content type" />
+
+            <Entry x:Name="ContentIdEntry" Placeholder="Content ID (article / survey / carousel / conversation / ticket)" />
+
             <Button
-                Clicked="OnPresentHelpCenterClicked"
+                Clicked="OnPresentContentClicked"
                 HorizontalOptions="Fill"
-                Text="Present help center" />
+                Text="Present content" />
+
+            <Button
+                Clicked="OnHideIntercomClicked"
+                HorizontalOptions="Fill"
+                Text="Hide Intercom" />
+
+            <!--  Chrome  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Chrome" />
+
+            <HorizontalStackLayout Spacing="10">
+                <Switch x:Name="LauncherSwitch" Toggled="OnLauncherToggled" />
+                <Label Text="Launcher visible" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Spacing="10">
+                <Switch
+                    x:Name="InAppMessagesSwitch"
+                    IsToggled="True"
+                    Toggled="OnInAppMessagesToggled" />
+                <Label Text="In-app messages visible" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Slider
+                x:Name="BottomPaddingSlider"
+                Maximum="120"
+                Minimum="0"
+                ValueChanged="OnBottomPaddingChanged" />
+
+            <Picker
+                x:Name="ThemePicker"
+                SelectedIndex="0"
+                Title="Theme mode (Android only)" />
+
+            <Button
+                Clicked="OnSetThemeClicked"
+                HorizontalOptions="Fill"
+                Text="Set theme mode" />
+
+            <!--  Events and Help Center  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Events and Help Center" />
 
             <Button
                 Clicked="OnLogEventClicked"
                 HorizontalOptions="Fill"
-                Text="Log event" />
+                Text="Log event (with metadata)" />
 
             <Button
-                Clicked="OnLogoutClicked"
+                Clicked="OnFetchCollectionsClicked"
                 HorizontalOptions="Fill"
-                Text="Logout" />
+                Text="Fetch Help Center collections" />
+
+            <Entry x:Name="SearchEntry" Placeholder="Help Center search term" />
+
+            <Button
+                Clicked="OnSearchHelpCenterClicked"
+                HorizontalOptions="Fill"
+                Text="Search Help Center" />
+
+            <Label
+                x:Name="HelpCenterResultsLabel"
+                LineBreakMode="WordWrap"
+                Text="No Help Center results yet" />
+
+            <!--  Push  -->
+            <Label Style="{StaticResource SubHeadline}" Text="Push" />
+
+            <Entry x:Name="PushTokenEntry" Placeholder="Push token (FCM token, or APNs token as hex)" />
+
+            <Button
+                Clicked="OnSendPushTokenClicked"
+                HorizontalOptions="Fill"
+                Text="Send push token to Intercom" />
+
+            <Button
+                Clicked="OnCheckPushPayloadClicked"
+                HorizontalOptions="Fill"
+                Text="Check a sample push payload" />
         </VerticalStackLayout>
     </ScrollView>
 

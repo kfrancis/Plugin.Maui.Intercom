@@ -101,6 +101,54 @@ No additional configuration is required for iOS. The native `Intercom.framework`
 
 ## API Usage
 
+> Upgrading from 0.x? Every member was renamed or resignatured in 1.0 — see
+> [MIGRATION.md](MIGRATION.md) for the mapping.
+
+### The whole surface
+
+Async members return a `Task` that faults with `IntercomException`, which carries the native
+error code. Everything else is synchronous and dispatches to the UI thread internally.
+
+| Member | Android | iOS |
+| --- | :---: | :---: |
+| `Initialize(apiKey, appId)` | ✅ | ✅ |
+| `ChangeWorkspace(apiKey, appId)` | ✅ | — |
+| `EnableLogging(level)` | ✅ | on/off only |
+| `LoginUnidentifiedUserAsync()` | ✅ | ✅ |
+| `LoginUserAsync(attributes)` | ✅ | ✅ |
+| `UpdateUserAsync(attributes)` | ✅ | ✅ |
+| `SetAuthTokensAsync(tokens)` | ✅ | ✅ |
+| `SetUserHash(userHash)` | ✅ | ✅ |
+| `SetUserJwt(jwt)` | ✅ | ✅ |
+| `Logout()` | ✅ | ✅ |
+| `IsUserLoggedIn` | ✅ | ✅ |
+| `FetchLoggedInUserAttributes()` | ✅ | ✅ |
+| `LogEvent(name, metadata)` | ✅ | ✅ |
+| `Present(space)` | ✅ | ✅ |
+| `PresentContent(content)` | ✅ | no `Ticket` |
+| `PresentMessageComposer(initialMessage)` | ✅ | ✅ |
+| `HideIntercom()` | ✅ | ✅ |
+| `SetLauncherVisible(visible)` | ✅ | ✅ |
+| `SetInAppMessagesVisible(visible)` | ✅ | ✅ |
+| `SetBottomPaddingDp(dp)` | ✅ | ✅ |
+| `SetThemeMode(mode)` | ✅ | — |
+| `UnreadConversationCount` | ✅ | ✅ |
+| `UnreadConversationCountChanged` | ✅ | ✅ |
+| `FetchHelpCenterCollectionsAsync()` | ✅ | ✅ |
+| `FetchHelpCenterCollectionAsync(id)` | ✅ | ✅ |
+| `SearchHelpCenterAsync(term)` | ✅ | ✅ |
+| `SendPushTokenToIntercomAsync(token)` | ✅ | ✅ |
+| `IsIntercomPush(payload)` | ✅ | ✅ |
+| `HandlePush(payload)` | ✅ | ✅ |
+
+Members marked `—` throw `PlatformNotSupportedException` with the reason in the message.
+`ChangeWorkspace` and `SetThemeMode` have no iOS counterpart; the Intercom iOS SDK's public
+ObjC surface declares no theme override, despite what the documentation site says.
+
+That table is enforced, not aspirational: `eng/api-coverage.sh` extracts the public API of the
+pinned Android AARs and iOS xcframework and fails the build if a native symbol is not
+classified in `eng/api-coverage.json`.
+
 ### Initialization
 
 Initialize Intercom early in your app's lifecycle (e.g., in `App.xaml.cs` or your main page):
@@ -108,67 +156,83 @@ Initialize Intercom early in your app's lifecycle (e.g., in `App.xaml.cs` or you
 ```csharp
 using Plugin.Maui.Intercom;
 
-// Initialize with your Intercom credentials
 Intercom.Default.Initialize("your-api-key", "your-app-id");
 ```
 
 You can find your API key and App ID in your [Intercom settings](https://app.intercom.com/a/apps/_/settings/android).
+The key is platform-specific: an iOS key will not work on Android.
 
-### User Registration
-
-#### Register an unidentified user
+### Logging users in
 
 ```csharp
-Intercom.Default.Register(
-    onSuccess: () => Console.WriteLine("User registered successfully"),
-    onFailure: (error) => Console.WriteLine($"Registration failed: {error}")
-);
+// No identifiable information
+await Intercom.Default.LoginUnidentifiedUserAsync();
+
+// Identified, with attributes sent along with the login
+var attributes = new IntercomUserAttributes
+{
+    UserId = "user-123",
+    Email = "user@example.com",
+    Name = "Bob",
+    SignedUpAt = DateTimeOffset.UtcNow,
+};
+attributes.CustomAttributes["items_in_cart"] = 8;
+attributes.Companies.Add(new IntercomCompany { CompanyId = "abc1234", Name = "Sample Co" });
+
+await Intercom.Default.LoginUserAsync(attributes);
 ```
 
-#### Register with User ID
+Failures throw `IntercomException`, which carries the native code:
 
 ```csharp
-Intercom.Default.RegisterWithUserId(
-    "user-123",
-    onSuccess: () => Console.WriteLine("User registered"),
-    onFailure: (error) => Console.WriteLine($"Failed: {error}")
-);
+try
+{
+    await Intercom.Default.LoginUserAsync(attributes);
+}
+catch (IntercomException e)
+{
+    logger.LogError("Intercom login failed ({Code}): {Message}", e.ErrorCode, e.Message);
+}
 ```
 
-#### Register with Email
+Update attributes later with `UpdateUserAsync`, which takes the same object.
+
+### Securing the session
 
 ```csharp
-Intercom.Default.RegisterWithEmail(
-    "user@example.com",
-    onSuccess: () => Console.WriteLine("User registered"),
-    onFailure: (error) => Console.WriteLine($"Failed: {error}")
-);
-```
-
-### Identity Verification (Recommended)
-
-For enhanced security, use [Identity Verification](https://developers.intercom.com/docs/build-an-integration/learn-more/security/identity-verification/identity-verification-web-ios/):
-
-```csharp
-// Generate the user hash on your server using HMAC-SHA256
-// with your Intercom secret key and the user's identifier
+// Identity Verification: an HMAC-SHA256 digest generated on your server
 Intercom.Default.SetUserHash("hmac-sha256-hash");
+
+// Messenger Security (newer, and required when your workspace enforces it)
+Intercom.Default.SetUserJwt(jwtFromYourServer);
 ```
+
+Call either one *before* logging a user in.
 
 ### Presenting Intercom UI
 
 ```csharp
-Intercom.Default.PresentMessenger(null);            // Messenger
-Intercom.Default.PresentMessenger("I need help");   // Messenger with a pre-filled composer
-Intercom.Default.PresentHelpCenter();               // Help center space
-Intercom.Default.PresentSupportCenter();            // Home space
-Intercom.Default.PresentCarousel("carousel-id");    // A specific carousel
+Intercom.Default.Present();                              // Home
+Intercom.Default.Present(IntercomSpace.Messages);        // Conversations
+Intercom.Default.Present(IntercomSpace.HelpCenter);
+Intercom.Default.Present(IntercomSpace.Tickets);
+
+Intercom.Default.PresentMessageComposer("I need help");  // Composer, pre-filled
+
+Intercom.Default.PresentContent(new IntercomContent.Article("article-id"));
+Intercom.Default.PresentContent(new IntercomContent.Carousel("carousel-id"));
+Intercom.Default.PresentContent(new IntercomContent.Survey("survey-id"));
+Intercom.Default.PresentContent(new IntercomContent.Conversation("conversation-id"));
+Intercom.Default.PresentContent(new IntercomContent.HelpCenterCollections(["collection-id"]));
+Intercom.Default.PresentContent(new IntercomContent.Ticket("ticket-id"));  // Android only
+
+Intercom.Default.HideIntercom();
 ```
 
 All presentation happens on the main thread automatically.
 
 Intercom reports *every* Messenger failure the same way — a generic "something went wrong"
-screen — so check that a user is actually registered before presenting, and turn on the native
+screen — so check that a user is actually logged in before presenting, and turn on the native
 SDK's own logging while diagnosing:
 
 ```csharp
@@ -177,29 +241,88 @@ Intercom.Default.Initialize(apiKey, appId);
 
 if (!Intercom.Default.IsUserLoggedIn)
 {
-    Intercom.Default.Register();        // or RegisterWithEmail / RegisterWithUserId
+    await Intercom.Default.LoginUnidentifiedUserAsync();
 }
 
-Intercom.Default.PresentMessenger(null);
+Intercom.Default.Present();
 ```
 
 `EnableLogging` writes to the Xcode console on iOS and to logcat (tag `intercom`) on Android.
 The usual causes of the error screen are: no logged-in user, an API key that belongs to the
 other platform, an App ID that does not match the key, or identity verification enabled on the
-workspace without a matching `SetUserHash` call *before* registration.
+workspace without a matching `SetUserHash`/`SetUserJwt` call *before* login.
 
 ### Events
 
 ```csharp
 Intercom.Default.LogEvent("clicked_checkout");
+
+Intercom.Default.LogEvent("clicked_checkout", new Dictionary<string, object?>
+{
+    ["order_total"] = 42.50m,
+    ["currency"] = "EUR",
+    ["at"] = DateTimeOffset.UtcNow,
+});
+```
+
+Metadata values must be strings, numbers, booleans or dates. Types are preserved on the way
+across, so sending `"42"` where you previously sent `42` changes the attribute's type in your
+workspace.
+
+### Unread conversations
+
+```csharp
+badge.Text = Intercom.Default.UnreadConversationCount.ToString();
+
+Intercom.Default.UnreadConversationCountChanged += (_, count) => badge.Text = count.ToString();
+```
+
+The native listener is only attached while at least one handler is subscribed.
+
+### Help Center data
+
+For building your own Help Center UI instead of presenting Intercom's:
+
+```csharp
+var collections = await Intercom.Default.FetchHelpCenterCollectionsAsync();
+var content = await Intercom.Default.FetchHelpCenterCollectionAsync(collections[0].Id);
+var results = await Intercom.Default.SearchHelpCenterAsync("refund");
+
+Intercom.Default.PresentContent(new IntercomContent.Article(results[0].ArticleId));
+```
+
+`HelpCenterCollectionContent.Sections` is Android-only and is always empty on iOS — the iOS
+SDK's collection model has no sections concept.
+
+### Push notifications
+
+Your app still owns push registration: Firebase Messaging on Android, and
+`RegisteredForRemoteNotifications` on iOS. Hand Intercom the token that produces, then let it
+claim the payloads it sent.
+
+```csharp
+// Android: from FirebaseMessagingService.OnNewToken
+// iOS: from RegisteredForRemoteNotifications, hex-encoded
+await Intercom.Default.SendPushTokenToIntercomAsync(token);
+
+if (Intercom.Default.IsIntercomPush(payload))
+{
+    Intercom.Default.HandlePush(payload);
+}
 ```
 
 ### Customization
 
 ```csharp
-Intercom.Default.SetVisible(true);       // Show/hide the launcher
-Intercom.Default.SetBottomPadding(100);  // Padding from the bottom of the screen
+Intercom.Default.SetLauncherVisible(true);        // Show/hide the launcher
+Intercom.Default.SetInAppMessagesVisible(false);  // Suppress in-app messages
+Intercom.Default.SetBottomPaddingDp(24);          // Device-independent pixels on both platforms
+Intercom.Default.SetThemeMode(IntercomThemeMode.Dark);  // Android only
 ```
+
+`SetBottomPaddingDp` takes dp on both platforms. The native APIs disagree — Android's
+`setBottomPadding` takes raw pixels and iOS's takes points — so the Android implementation
+scales by the display density, and the same argument means the same physical distance.
 
 ### Logout
 
@@ -218,7 +341,7 @@ public class MyViewModel
 
     public MyViewModel(IIntercom intercom) => _intercom = intercom;
 
-    public void ShowMessenger() => _intercom.PresentMessenger(null);
+    public void ShowMessenger() => _intercom.Present();
 }
 ```
 
@@ -268,6 +391,47 @@ dotnet pack src/Plugin.Maui.Intercom/Plugin.Maui.Intercom.csproj -c Release --ou
 
 > The iOS binding project is intentionally not in the solution file; it can only build on macOS.
 
+On Windows, `build.ps1` does the whole Android loop: it packs the Android binding into
+`artifacts/local-feed` and restores the plugin against it. That step is not optional — the
+plugin consumes the binding as a package, not a project reference, so a change to
+`src/android/native` is invisible until it has been packed.
+
+### Native API coverage
+
+```bash
+eng/api-coverage.sh            # gate: fail on unclassified or removed native symbols
+eng/api-coverage.sh --strict   # also fail on anything still marked todo (what CI runs)
+eng/api-coverage.sh --update   # classify newly-appeared symbols as todo for triage
+eng/api-coverage.sh --print    # dump the extracted native inventory
+```
+
+This is what keeps `IIntercom` honest. It runs `javap` over the pinned Intercom AARs and text-
+parses the vendored `Intercom.xcframework` headers, then checks every public symbol against
+`eng/api-coverage.json`, where each is `covered` (with the plugin member that surfaces it),
+`skipped` (with a reason) or `todo`. An Intercom upgrade that adds or removes API therefore
+fails the build instead of drifting silently.
+
+Needs bash, python3, a JDK and unzip — no .NET, no Xcode, no network. Runs on Windows via Git
+Bash. `eng/update-intercom.sh` runs it automatically after bumping the iOS SDK so the API delta
+lands in the same PR as the version bump.
+
+Note that the published docs at developers.intercom.com are *not* usable as the source of
+truth: they describe an iOS `setThemeOverride:` that the shipped headers do not declare, and
+omit `setUserJwt`, `setAuthTokens`, `IntercomContent.Ticket` and the whole `IntercomPushClient`.
+The vendored artifacts are.
+
+### Tests
+
+```bash
+dotnet test src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj
+```
+
+Runs on plain `net10.0` and compiles the plugin's platform-neutral sources directly, since
+`Plugin.Maui.Intercom` itself only targets android and ios. It covers the model invariants, the
+generic-.NET fallback (every `IIntercom` member must be present and must throw), and the
+integrity of `eng/api-coverage.json` — every `covered` entry has to name a member that really
+exists, which is the half `eng/api-coverage.sh` cannot check.
+
 ### Clean-room package test
 
 To prove the packages work from outside the source tree (this is what CI gates releases on):
@@ -291,7 +455,13 @@ eng/update-intercom.sh <new-version> [<expected-sha256>]
 eng/generate-ios-binding.sh
 ```
 
-The update script downloads the exact tagged release from `intercom/intercom-ios`, verifies/records its SHA-256, replaces the vendored xcframework and updates the `IntercomIosSdkVersion` pin in `Directory.Build.props`. After regenerating, fix any compile errors in `src/Plugin.Maui.Intercom/Intercom.macios.cs` caused by upstream API changes.
+The update script downloads the exact tagged release from `intercom/intercom-ios`, verifies/records its SHA-256, replaces the vendored xcframework, updates the `IntercomIosSdkVersion` pin in `Directory.Build.props` and runs `eng/api-coverage.sh --update` so the API delta is visible in the same PR. Triage anything it recorded as `todo`, then regenerate and fix any compile errors in `src/Plugin.Maui.Intercom/Intercom.macios.cs`.
+
+```bash
+eng/dump-ios-binding-api.sh --check
+```
+
+confirms the generator actually produced every member `Intercom.macios.cs` calls. Anything missing is a generator bug: report it upstream and mark the symbol `todo` in `eng/api-coverage.json` — do not reintroduce hand-written binding supplements.
 
 To update the swift-dotnet-bindings generator, change the `SwiftBindings.Sdk` version in `global.json` (`msbuild-sdks`) — releases are tagged `sdk-vX.Y.Z` upstream.
 

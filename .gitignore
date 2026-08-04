@@ -682,3 +682,6 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/rider,intellij,windows,macos,dotnetcore,visualstudio,visualstudiocode,android
 src/sample/appsettings.Development.json
+
+# Local-feed NuGet config written by build.ps1 (see the header there).
+nuget.local.config

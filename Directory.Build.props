@@ -3,10 +3,19 @@
 
   <!-- Shared version for all packages -->
   <PropertyGroup>
-    <IntercomPluginVersion Condition="'$(IntercomPluginVersion)' == ''">0.7.0</IntercomPluginVersion>
+    <!-- 1.0.0: the v2 API surface is a breaking change (see MIGRATION.md). CI overrides this
+         with the MinVer-computed version, so the release tag must be v1.0.0 or later. -->
+    <IntercomPluginVersion Condition="'$(IntercomPluginVersion)' == ''">1.0.0</IntercomPluginVersion>
     <!-- Use Version if provided, otherwise use IntercomPluginVersion -->
     <BindingPackageVersion Condition="'$(Version)' != ''">$(Version)</BindingPackageVersion>
     <BindingPackageVersion Condition="'$(Version)' == ''">$(IntercomPluginVersion)</BindingPackageVersion>
+
+    <!-- The iOS binding can only be built on macOS with Xcode, so a Windows or Linux
+         developer has no way to produce it at the current version. Overriding this with an
+         already-published version lets restore succeed so the Android TFM can be built;
+         build.ps1 does exactly that. Never override it when packing — CI leaves it alone,
+         which keeps the packed dependency pinned to the version being released. -->
+    <IntercomIosBindingVersion Condition="'$(IntercomIosBindingVersion)' == ''">$(BindingPackageVersion)</IntercomIosBindingVersion>
 
     <!-- CI computes the version once (MinVer in the version job) and passes it as
          -p:Version to every build/pack. Skip the in-project MinVer run in that case,

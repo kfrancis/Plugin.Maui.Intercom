@@ -20,5 +20,5 @@ namespace MauiSample.Pages;
 /// </remarks>
 internal sealed class NamespaceCollisionRegression
 {
-    public static void UsesUnqualifiedStaticAccessor() => Intercom.Default.SetVisible(false);
+    public static void UsesUnqualifiedStaticAccessor() => Intercom.Default.SetLauncherVisible(false);
 }

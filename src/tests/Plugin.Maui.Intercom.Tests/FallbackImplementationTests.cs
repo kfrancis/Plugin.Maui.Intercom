@@ -1,0 +1,50 @@
+using System.Reflection;
+using Plugin.Maui.Intercom;
+
+namespace Plugin.Maui.Intercom.Tests;
+
+/// <summary>
+///     Every <see cref="IIntercom" /> member must be present in the generic .NET fallback and
+///     must throw rather than quietly do nothing.
+/// </summary>
+/// <remarks>
+///     The fallback is not compiled into the shipped package, so nothing else would notice a
+///     member that was added to the interface and forgotten here — until a unit-test host or
+///     design-time build picked it up and got a silent no-op.
+/// </remarks>
+public sealed class FallbackImplementationTests
+{
+    [Test]
+    public async Task EveryInterfaceMemberThrowsPlatformNotSupported()
+    {
+        var implementation = Intercom.Default;
+        var failures = new List<string>();
+
+        foreach (var method in typeof(IIntercom).GetMethods())
+        {
+            var arguments = method.GetParameters()
+                .Select(p => p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null)
+                .ToArray();
+
+            try
+            {
+                method.Invoke(implementation, arguments);
+                failures.Add($"{method.Name} did not throw");
+            }
+            catch (TargetInvocationException e) when (e.InnerException is PlatformNotSupportedException)
+            {
+                // Expected.
+            }
+            catch (Exception e)
+            {
+                failures.Add($"{method.Name} threw {e.InnerException?.GetType().Name ?? e.GetType().Name}");
+            }
+        }
+
+        await Assert.That(failures).IsEmpty();
+    }
+
+    [Test]
+    public async Task DefaultIsASingleton() =>
+        await Assert.That(Intercom.Default).IsSameReferenceAs(Intercom.Default);
+}

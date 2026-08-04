@@ -130,7 +130,7 @@
   
   <!-- iOS binding package dependency -->
   <ItemGroup Condition="$(TargetFramework.Contains('ios')) Or $(TargetFramework.Contains('maccatalyst'))">
-    <PackageReference Include="Plugin.Maui.Intercom.iOS.Binding" Version="$(BindingPackageVersion)" />
+    <PackageReference Include="Plugin.Maui.Intercom.iOS.Binding" Version="$(IntercomIosBindingVersion)" />
   </ItemGroup>
 
 </Project>

@@ -52,6 +52,49 @@ permissions: {}
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
+  # Fails when the pinned Intercom SDKs expose a public symbol that is not
+  # classified in eng/api-coverage.json. Cheap (no .NET, no Xcode, ~10s), so it
+  # runs first and catches SDK drift before the expensive macOS jobs start.
+  api-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          show-progress: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Check native API coverage
+        run: eng/api-coverage.sh --strict
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Plain net10.0 — no MAUI workloads, no platform SDKs. Covers the shared models,
+  # the generic-.NET fallback, and whether eng/api-coverage.json's "covered" entries
+  # name members that actually exist (the half api-coverage.sh cannot check).
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          show-progress: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: 'global.json'
+
+      - name: Run tests
+        run: dotnet test src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj -c Release
+
+  # ──────────────────────────────────────────────────────────────────────────
   version:
     runs-on: ubuntu-latest
     permissions:
@@ -83,7 +126,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   android:
     runs-on: windows-latest
-    needs: [ version ]
+    needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
     steps:
@@ -133,7 +176,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   ios-binding:
     runs-on: macos-26
-    needs: [ version ]
+    needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
     steps:
@@ -162,6 +205,14 @@ jobs:
         run: |
           chmod +x eng/generate-ios-binding.sh
           eng/generate-ios-binding.sh --version ${{ needs.version.outputs.version }} --output "$GITHUB_WORKSPACE/nuget"
+
+      # The generator is the only source of the iOS surface — hand-written binding
+      # supplements are not allowed here (see CLAUDE.md), so a member it failed to emit
+      # is an upstream bug, and this reports it as one rather than as a C# compile error.
+      - name: Verify the generated binding covers what the plugin calls
+        run: |
+          chmod +x eng/dump-ios-binding-api.sh
+          eng/dump-ios-binding-api.sh --check
 
       - name: Show package contents
         run: unzip -l nuget/Plugin.Maui.Intercom.iOS.Binding.${{ needs.version.outputs.version }}.nupkg

@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsPublishable>false</IsPublishable>
+    <MinVerSkip>true</MinVerSkip>
+    <!-- TUnit runs on Microsoft.Testing.Platform; the .NET 10 SDK refuses the old VSTest
+         bridge, so `dotnet test` needs this to drive the test host directly. -->
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <!--
+    Plugin.Maui.Intercom only targets net10.0-android and net10.0-ios, so it cannot be
+    referenced from a plain net10.0 test project. Compiling its platform-neutral sources
+    directly is what makes the shared surface testable off-device: the models, the interface,
+    the static accessor, and the .net.cs fallback that every member must be present in.
+
+    Deliberately NOT included: *.android.cs and *.macios.cs. Everything they do is native
+    interop that only means anything on a device.
+  -->
+  <ItemGroup>
+    <Compile Include="..\..\Plugin.Maui.Intercom\IIntercom.cs" Link="Shared\IIntercom.cs" />
+    <Compile Include="..\..\Plugin.Maui.Intercom\IntercomException.cs" Link="Shared\IntercomException.cs" />
+    <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.shared.cs" Link="Shared\Intercom.shared.cs" />
+    <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.net.cs" Link="Shared\Intercom.net.cs" />
+    <Compile Include="..\..\Plugin.Maui.Intercom\Models\*.cs" Link="Shared\Models\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- The coverage map is data under test; copy it next to the assembly. -->
+  <ItemGroup>
+    <None Include="..\..\..\eng\api-coverage.json" Link="api-coverage.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TUnit" Version="1.63.0" />
+  </ItemGroup>
+
+</Project>

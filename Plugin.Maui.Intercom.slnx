@@ -16,6 +16,9 @@
     <File Path="NuGet.Config" />
   </Folder>
   <Project Path="src/Plugin.Maui.Intercom/Plugin.Maui.Intercom.csproj" />
+  <!-- net10.0 test project. It compiles the plugin's platform-neutral sources directly
+       rather than referencing it: Plugin.Maui.Intercom only targets android and ios. -->
+  <Project Path="src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj" />
   <Project Path="src/sample/MauiSample.csproj">
     <Deploy />
   </Project>

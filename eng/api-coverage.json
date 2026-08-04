@@ -1,0 +1,1102 @@
+{
+  "androidSdkVersion": "17.4.1",
+  "iosSdkVersion": "18.7.2",
+  "symbols": {
+    "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
+      "status": "covered",
+      "member": "IIntercom.SetAuthTokensAsync"
+    },
+    "android:io.intercom.android.sdk.AuthToken#getName()": {
+      "status": "skipped",
+      "reason": "Read back by the SDK; the plugin only constructs AuthTokens from the dictionary passed to SetAuthTokensAsync."
+    },
+    "android:io.intercom.android.sdk.AuthToken#getToken()": {
+      "status": "skipped",
+      "reason": "Read back by the SDK; the plugin only constructs AuthTokens from the dictionary passed to SetAuthTokensAsync."
+    },
+    "android:io.intercom.android.sdk.AuthToken#setName(String)": {
+      "status": "skipped",
+      "reason": "Read back by the SDK; the plugin only constructs AuthTokens from the dictionary passed to SetAuthTokensAsync."
+    },
+    "android:io.intercom.android.sdk.AuthToken#setToken(String)": {
+      "status": "skipped",
+      "reason": "Read back by the SDK; the plugin only constructs AuthTokens from the dictionary passed to SetAuthTokensAsync."
+    },
+    "android:io.intercom.android.sdk.Company$Builder#<init>()": {
+      "status": "skipped",
+      "reason": "Builder plumbing; the attribute setters it wraps are covered individually."
+    },
+    "android:io.intercom.android.sdk.Company$Builder#build()": {
+      "status": "skipped",
+      "reason": "Builder plumbing; the attribute setters it wraps are covered individually."
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withCompanyId(String)": {
+      "status": "covered",
+      "member": "IntercomCompany.CompanyId"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withCreatedAt(Long)": {
+      "status": "covered",
+      "member": "IntercomCompany.CreatedAt"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withCustomAttribute(String,Object)": {
+      "status": "covered",
+      "member": "IntercomCompany.CustomAttributes"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withCustomAttributes(Map)": {
+      "status": "covered",
+      "member": "IntercomCompany.CustomAttributes"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withMonthlySpend(Integer)": {
+      "status": "covered",
+      "member": "IntercomCompany.MonthlySpend"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withName(String)": {
+      "status": "covered",
+      "member": "IntercomCompany.Name"
+    },
+    "android:io.intercom.android.sdk.Company$Builder#withPlan(String)": {
+      "status": "covered",
+      "member": "IntercomCompany.Plan"
+    },
+    "android:io.intercom.android.sdk.Intercom#GONE": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "android:io.intercom.android.sdk.Intercom#PUSH_RECEIVER": {
+      "status": "skipped",
+      "reason": "Receiver class name for AndroidManifest.xml, not a code entry point."
+    },
+    "android:io.intercom.android.sdk.Intercom#VISIBLE": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "android:io.intercom.android.sdk.Intercom#addUnreadConversationCountListener(UnreadConversationCountListener)": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCountChanged"
+    },
+    "android:io.intercom.android.sdk.Intercom#changeWorkspace(String,String)": {
+      "status": "covered",
+      "member": "IIntercom.ChangeWorkspace"
+    },
+    "android:io.intercom.android.sdk.Intercom#client()": {
+      "status": "skipped",
+      "reason": "Singleton accessor; every other call in IntercomSdk.java routes through it."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayArticle(String)": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; presentContent(IntercomContent.Article) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayCarousel(String)": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; presentContent(IntercomContent.Carousel) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayConversationsList()": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; present(IntercomSpace.Messages) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayHelpCenter()": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; present(IntercomSpace.HelpCenter) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayHelpCenterCollections(List)": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; presentContent(IntercomContent.HelpCenterCollections) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displayMessageComposer()": {
+      "status": "covered",
+      "member": "IIntercom.PresentMessageComposer"
+    },
+    "android:io.intercom.android.sdk.Intercom#displayMessageComposer(String)": {
+      "status": "covered",
+      "member": "IIntercom.PresentMessageComposer"
+    },
+    "android:io.intercom.android.sdk.Intercom#displayMessenger()": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; present() is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#displaySurvey(String)": {
+      "status": "skipped",
+      "reason": "Legacy display* alias retained for source compatibility; presentContent(IntercomContent.Survey) is the current API and is what the plugin calls."
+    },
+    "android:io.intercom.android.sdk.Intercom#fetchHelpCenterCollection(String,CollectionContentRequestCallback)": {
+      "status": "covered",
+      "member": "IIntercom.FetchHelpCenterCollectionAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#fetchHelpCenterCollections(CollectionRequestCallback)": {
+      "status": "covered",
+      "member": "IIntercom.FetchHelpCenterCollectionsAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#fetchLoggedInUserAttributes()": {
+      "status": "covered",
+      "member": "IIntercom.FetchLoggedInUserAttributes"
+    },
+    "android:io.intercom.android.sdk.Intercom#getUnreadConversationCount()": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCount"
+    },
+    "android:io.intercom.android.sdk.Intercom#handlePushMessage()": {
+      "status": "skipped",
+      "reason": "Opens the Messenger for a push the app displayed itself. IntercomPushClient.handlePush covers the supported flow."
+    },
+    "android:io.intercom.android.sdk.Intercom#handlePushMessage(TaskStackBuilder)": {
+      "status": "skipped",
+      "reason": "Opens the Messenger for a push the app displayed itself. IntercomPushClient.handlePush covers the supported flow."
+    },
+    "android:io.intercom.android.sdk.Intercom#hideIntercom()": {
+      "status": "covered",
+      "member": "IIntercom.HideIntercom"
+    },
+    "android:io.intercom.android.sdk.Intercom#initialize(Application,String,String)": {
+      "status": "covered",
+      "member": "IIntercom.Initialize"
+    },
+    "android:io.intercom.android.sdk.Intercom#isUserLoggedIn()": {
+      "status": "covered",
+      "member": "IIntercom.IsUserLoggedIn"
+    },
+    "android:io.intercom.android.sdk.Intercom#logEvent(String)": {
+      "status": "covered",
+      "member": "IIntercom.LogEvent"
+    },
+    "android:io.intercom.android.sdk.Intercom#logEvent(String,Map)": {
+      "status": "covered",
+      "member": "IIntercom.LogEvent"
+    },
+    "android:io.intercom.android.sdk.Intercom#loginIdentifiedUser(Registration,IntercomStatusCallback)": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#loginUnidentifiedUser(IntercomStatusCallback)": {
+      "status": "covered",
+      "member": "IIntercom.LoginUnidentifiedUserAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#logout()": {
+      "status": "covered",
+      "member": "IIntercom.Logout"
+    },
+    "android:io.intercom.android.sdk.Intercom#present()": {
+      "status": "covered",
+      "member": "IIntercom.Present"
+    },
+    "android:io.intercom.android.sdk.Intercom#present(IntercomSpace)": {
+      "status": "covered",
+      "member": "IIntercom.Present"
+    },
+    "android:io.intercom.android.sdk.Intercom#presentContent(IntercomContent)": {
+      "status": "covered",
+      "member": "IIntercom.PresentContent"
+    },
+    "android:io.intercom.android.sdk.Intercom#registerForLaterInitialisation(Application)": {
+      "status": "skipped",
+      "reason": "Alternative init path for apps that cannot initialise eagerly. Initialize covers the supported flow."
+    },
+    "android:io.intercom.android.sdk.Intercom#registerIdentifiedUser(Registration)": {
+      "status": "skipped",
+      "reason": "Deprecated pre-17.x login API, superseded by loginUnidentifiedUser/loginIdentifiedUser."
+    },
+    "android:io.intercom.android.sdk.Intercom#registerUnidentifiedUser()": {
+      "status": "skipped",
+      "reason": "Deprecated pre-17.x login API, superseded by loginUnidentifiedUser/loginIdentifiedUser."
+    },
+    "android:io.intercom.android.sdk.Intercom#removeUnreadConversationCountListener(UnreadConversationCountListener)": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCountChanged"
+    },
+    "android:io.intercom.android.sdk.Intercom#reset()": {
+      "status": "skipped",
+      "reason": "Clears the local cache without ending the session. Logout is the supported teardown and reset() has no iOS counterpart."
+    },
+    "android:io.intercom.android.sdk.Intercom#searchHelpCenter(String,SearchRequestCallback)": {
+      "status": "covered",
+      "member": "IIntercom.SearchHelpCenterAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#setAuthTokens(List,IntercomStatusCallback)": {
+      "status": "covered",
+      "member": "IIntercom.SetAuthTokensAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom#setBottomPadding(int)": {
+      "status": "covered",
+      "member": "IIntercom.SetBottomPaddingDp"
+    },
+    "android:io.intercom.android.sdk.Intercom#setInAppMessageVisibility(Intercom$Visibility)": {
+      "status": "covered",
+      "member": "IIntercom.SetInAppMessagesVisible"
+    },
+    "android:io.intercom.android.sdk.Intercom#setLauncherVisibility(Intercom$Visibility)": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "android:io.intercom.android.sdk.Intercom#setLogLevel(int)": {
+      "status": "covered",
+      "member": "IIntercom.EnableLogging"
+    },
+    "android:io.intercom.android.sdk.Intercom#setThemeMode(ThemeMode)": {
+      "status": "covered",
+      "member": "IIntercom.SetThemeMode"
+    },
+    "android:io.intercom.android.sdk.Intercom#setUserHash(String)": {
+      "status": "covered",
+      "member": "IIntercom.SetUserHash"
+    },
+    "android:io.intercom.android.sdk.Intercom#setUserJwt(String)": {
+      "status": "covered",
+      "member": "IIntercom.SetUserJwt"
+    },
+    "android:io.intercom.android.sdk.Intercom#unregisterForLateInitialisation(Application)": {
+      "status": "skipped",
+      "reason": "Alternative init path for apps that cannot initialise eagerly. Initialize covers the supported flow."
+    },
+    "android:io.intercom.android.sdk.Intercom#updateUser(UserAttributes)": {
+      "status": "skipped",
+      "reason": "Callback-less overload. UpdateUserAsync uses the IntercomStatusCallback overload so failures surface."
+    },
+    "android:io.intercom.android.sdk.Intercom#updateUser(UserAttributes,IntercomStatusCallback)": {
+      "status": "covered",
+      "member": "IIntercom.UpdateUserAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#ASSERT": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#DEBUG": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#DISABLED": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#ERROR": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#INFO": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#VERBOSE": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$LogLevel#WARN": {
+      "status": "covered",
+      "member": "IntercomLogLevel"
+    },
+    "android:io.intercom.android.sdk.Intercom$Visibility#GONE": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "android:io.intercom.android.sdk.Intercom$Visibility#VISIBLE": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Article#<init>(String)": {
+      "status": "covered",
+      "member": "IntercomContent.Article"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Article#getId()": {
+      "status": "covered",
+      "member": "IntercomContent.Article"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Carousel#<init>(String)": {
+      "status": "covered",
+      "member": "IntercomContent.Carousel"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Carousel#getId()": {
+      "status": "covered",
+      "member": "IntercomContent.Carousel"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Conversation#<init>(String)": {
+      "status": "covered",
+      "member": "IntercomContent.Conversation"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Conversation#getId()": {
+      "status": "covered",
+      "member": "IntercomContent.Conversation"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$HelpCenterCollections#<init>(List)": {
+      "status": "covered",
+      "member": "IntercomContent.HelpCenterCollections"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$HelpCenterCollections#getIds()": {
+      "status": "covered",
+      "member": "IntercomContent.HelpCenterCollections"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Survey#<init>(String)": {
+      "status": "covered",
+      "member": "IntercomContent.Survey"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Survey#getId()": {
+      "status": "covered",
+      "member": "IntercomContent.Survey"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Ticket#<init>(String)": {
+      "status": "covered",
+      "member": "IntercomContent.Ticket"
+    },
+    "android:io.intercom.android.sdk.IntercomContent$Ticket#getId()": {
+      "status": "covered",
+      "member": "IntercomContent.Ticket"
+    },
+    "android:io.intercom.android.sdk.IntercomError#<init>()": {
+      "status": "skipped",
+      "reason": "Constructed by the SDK; the plugin only reads the error."
+    },
+    "android:io.intercom.android.sdk.IntercomError#<init>(int,String)": {
+      "status": "skipped",
+      "reason": "Constructed by the SDK; the plugin only reads the error."
+    },
+    "android:io.intercom.android.sdk.IntercomError#getErrorCode()": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "android:io.intercom.android.sdk.IntercomError#getErrorMessage()": {
+      "status": "covered",
+      "member": "IntercomException.Message"
+    },
+    "android:io.intercom.android.sdk.IntercomSpace#HelpCenter": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "android:io.intercom.android.sdk.IntercomSpace#Home": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "android:io.intercom.android.sdk.IntercomSpace#Messages": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "android:io.intercom.android.sdk.IntercomSpace#Tickets": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "android:io.intercom.android.sdk.IntercomStatusCallback#onFailure(IntercomError)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.IntercomStatusCallback#onSuccess()": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.UnreadConversationCountListener#onCountUpdate(int)": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCountChanged"
+    },
+    "android:io.intercom.android.sdk.UserAttributes#isEmpty()": {
+      "status": "skipped",
+      "reason": "Internal serialisation of the builder output."
+    },
+    "android:io.intercom.android.sdk.UserAttributes#toMap()": {
+      "status": "skipped",
+      "reason": "Internal serialisation of the builder output."
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#<init>()": {
+      "status": "skipped",
+      "reason": "Builder plumbing; the attribute setters it wraps are covered individually."
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#build()": {
+      "status": "skipped",
+      "reason": "Builder plumbing; the attribute setters it wraps are covered individually."
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withCompany(Company)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Companies"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withCustomAttribute(String,Object)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.CustomAttributes"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withCustomAttributes(Map)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.CustomAttributes"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withEmail(String)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Email"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withLanguageOverride(String)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.LanguageOverride"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withName(String)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Name"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withPhone(String)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Phone"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withSignedUpAt(Date)": {
+      "status": "skipped",
+      "reason": "java.util.Date overload; the Long (epoch seconds) overload is what the bridge calls."
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withSignedUpAt(Long)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.SignedUpAt"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withUnsubscribedFromEmails(Boolean)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.UnsubscribedFromEmails"
+    },
+    "android:io.intercom.android.sdk.UserAttributes$Builder#withUserId(String)": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.UserId"
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionContentRequestCallback#onComplete(HelpCenterCollectionContent)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionContentRequestCallback#onError(int)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionContentRequestCallback#onFailure()": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionRequestCallback#onComplete(List)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionRequestCallback#onError(int)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.CollectionRequestCallback#onFailure()": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.HelpCenterArticleSearchResult#<init>(String,String,String,String)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.HelpCenterArticleSearchResult#getArticleId()": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.ArticleId"
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.HelpCenterArticleSearchResult#getMatchingSnippet()": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.MatchingSnippet"
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.HelpCenterArticleSearchResult#getSummary()": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.Summary"
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.HelpCenterArticleSearchResult#getTitle()": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.Title"
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.SearchRequestCallback#onComplete(List)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.SearchRequestCallback#onError(int)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.api.SearchRequestCallback#onFailure()": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#<init>(String,String,String,int,int)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#getArticlesCount()": {
+      "status": "covered",
+      "member": "HelpCenterCollection.ArticleCount"
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#getCollectionsCount()": {
+      "status": "covered",
+      "member": "HelpCenterCollection.CollectionCount"
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#getId()": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Id"
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#getSummary()": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Summary"
+    },
+    "android:io.intercom.android.sdk.helpcenter.collections.HelpCenterCollection#getTitle()": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Title"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.Author#<init>(String,String,Avatar)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.Author#getAvatar()": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.AvatarUrl"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.Author#getId()": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.AuthorId"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.Author#getName()": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.DisplayName"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterArticle#<init>(String,String)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterArticle#getArticleId()": {
+      "status": "covered",
+      "member": "HelpCenterArticle.ArticleId"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterArticle#getTitle()": {
+      "status": "covered",
+      "member": "HelpCenterArticle.Title"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#<init>(String,String,String,List,List,List,int,List)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getArticlesCount()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.ArticleCount"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getAuthors()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Authors"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getCollectionId()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Id"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getHelpCenterArticles()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Articles"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getHelpCenterSections()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Sections"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getSubCollections()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.SubCollections"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getSummary()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Summary"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterCollectionContent#getTitle()": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Title"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterSection#<init>()": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterSection#<init>(List,String)": {
+      "status": "skipped",
+      "reason": "Model constructor invoked by the SDK's deserialiser; we only read these objects."
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterSection#getHelpCenterArticles()": {
+      "status": "covered",
+      "member": "HelpCenterSection.Articles"
+    },
+    "android:io.intercom.android.sdk.helpcenter.sections.HelpCenterSection#getTitle()": {
+      "status": "covered",
+      "member": "HelpCenterSection.Title"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#<init>()": {
+      "status": "skipped",
+      "reason": "Registration.create() is the documented factory."
+    },
+    "android:io.intercom.android.sdk.identity.Registration#create()": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#getAttributes()": {
+      "status": "covered",
+      "member": "IIntercom.FetchLoggedInUserAttributes"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#getEmail()": {
+      "status": "covered",
+      "member": "IIntercom.FetchLoggedInUserAttributes"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#getUserId()": {
+      "status": "covered",
+      "member": "IIntercom.FetchLoggedInUserAttributes"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#withEmail(String)": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#withUserAttributes(UserAttributes)": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "android:io.intercom.android.sdk.identity.Registration#withUserId(String)": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#<init>()": {
+      "status": "covered",
+      "member": "IIntercom.SendPushTokenToIntercomAsync"
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#handlePush(Application,Bundle)": {
+      "status": "skipped",
+      "reason": "Bundle overload; the Map overload matches the cross-platform dictionary signature."
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#handlePush(Application,Map)": {
+      "status": "covered",
+      "member": "IIntercom.HandlePush"
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#handlePushWithCustomStack(Application,Bundle,TaskStackBuilder)": {
+      "status": "skipped",
+      "reason": "Custom back-stack push handling is outside the agreed push scope (token + detection) and has no iOS counterpart."
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#handlePushWithCustomStack(Application,Map,TaskStackBuilder)": {
+      "status": "skipped",
+      "reason": "Custom back-stack push handling is outside the agreed push scope (token + detection) and has no iOS counterpart."
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#isIntercomPush(Bundle)": {
+      "status": "skipped",
+      "reason": "Bundle overload; the Map overload matches the cross-platform dictionary signature."
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#isIntercomPush(Map)": {
+      "status": "covered",
+      "member": "IIntercom.IsIntercomPush"
+    },
+    "android:io.intercom.android.sdk.push.IntercomPushClient#sendTokenToIntercom(Application,String)": {
+      "status": "covered",
+      "member": "IIntercom.SendPushTokenToIntercomAsync"
+    },
+    "android:io.intercom.android.sdk.ui.theme.ThemeMode#DARK": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "android:io.intercom.android.sdk.ui.theme.ThemeMode#LIGHT": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "android:io.intercom.android.sdk.ui.theme.ThemeMode#SYSTEM": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "ios:ICMCompany+nullDateAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMCompany+nullNumberAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMCompany+nullStringAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMCompany-attributes": {
+      "status": "skipped",
+      "reason": "Internal serialisation helper on the attributes object."
+    },
+    "ios:ICMCompany.companyId": {
+      "status": "covered",
+      "member": "IntercomCompany.CompanyId"
+    },
+    "ios:ICMCompany.createdAt": {
+      "status": "covered",
+      "member": "IntercomCompany.CreatedAt"
+    },
+    "ios:ICMCompany.customAttributes": {
+      "status": "covered",
+      "member": "IntercomCompany.CustomAttributes"
+    },
+    "ios:ICMCompany.monthlySpend": {
+      "status": "covered",
+      "member": "IntercomCompany.MonthlySpend"
+    },
+    "ios:ICMCompany.name": {
+      "status": "covered",
+      "member": "IntercomCompany.Name"
+    },
+    "ios:ICMCompany.plan": {
+      "status": "covered",
+      "member": "IntercomCompany.Plan"
+    },
+    "ios:ICMHelpCenterArticle.articleId": {
+      "status": "covered",
+      "member": "HelpCenterArticle.ArticleId"
+    },
+    "ios:ICMHelpCenterArticle.title": {
+      "status": "covered",
+      "member": "HelpCenterArticle.Title"
+    },
+    "ios:ICMHelpCenterArticleAuthor.authorId": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.AuthorId"
+    },
+    "ios:ICMHelpCenterArticleAuthor.avatarURL": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.AvatarUrl"
+    },
+    "ios:ICMHelpCenterArticleAuthor.displayName": {
+      "status": "covered",
+      "member": "HelpCenterArticleAuthor.DisplayName"
+    },
+    "ios:ICMHelpCenterArticleSearchResult.articleId": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.ArticleId"
+    },
+    "ios:ICMHelpCenterArticleSearchResult.matchingSnippet": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.MatchingSnippet"
+    },
+    "ios:ICMHelpCenterArticleSearchResult.summary": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.Summary"
+    },
+    "ios:ICMHelpCenterArticleSearchResult.title": {
+      "status": "covered",
+      "member": "HelpCenterArticleSearchResult.Title"
+    },
+    "ios:ICMHelpCenterCollection.articleCount": {
+      "status": "covered",
+      "member": "HelpCenterCollection.ArticleCount"
+    },
+    "ios:ICMHelpCenterCollection.collectionCount": {
+      "status": "covered",
+      "member": "HelpCenterCollection.CollectionCount"
+    },
+    "ios:ICMHelpCenterCollection.collectionId": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Id"
+    },
+    "ios:ICMHelpCenterCollection.summary": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Summary"
+    },
+    "ios:ICMHelpCenterCollection.title": {
+      "status": "covered",
+      "member": "HelpCenterCollection.Title"
+    },
+    "ios:ICMHelpCenterCollectionContent.articleCount": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.ArticleCount"
+    },
+    "ios:ICMHelpCenterCollectionContent.articles": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Articles"
+    },
+    "ios:ICMHelpCenterCollectionContent.authors": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Authors"
+    },
+    "ios:ICMHelpCenterCollectionContent.collectionId": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Id"
+    },
+    "ios:ICMHelpCenterCollectionContent.collections": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.SubCollections"
+    },
+    "ios:ICMHelpCenterCollectionContent.summary": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Summary"
+    },
+    "ios:ICMHelpCenterCollectionContent.title": {
+      "status": "covered",
+      "member": "HelpCenterCollectionContent.Title"
+    },
+    "ios:ICMUserAttributes+nullDateAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMUserAttributes+nullNumberAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMUserAttributes+nullStringAttribute": {
+      "status": "skipped",
+      "reason": "iOS-only sentinel for clearing an attribute. Android has no equivalent, so null-clearing is not modelled cross-platform."
+    },
+    "ios:ICMUserAttributes-attributes": {
+      "status": "skipped",
+      "reason": "Internal serialisation helper on the attributes object."
+    },
+    "ios:ICMUserAttributes-hasNonIdentifyingAttributes": {
+      "status": "skipped",
+      "reason": "Internal serialisation helper on the attributes object."
+    },
+    "ios:ICMUserAttributes-registrationAttributes": {
+      "status": "skipped",
+      "reason": "Internal serialisation helper on the attributes object."
+    },
+    "ios:ICMUserAttributes.companies": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Companies"
+    },
+    "ios:ICMUserAttributes.customAttributes": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.CustomAttributes"
+    },
+    "ios:ICMUserAttributes.email": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Email"
+    },
+    "ios:ICMUserAttributes.languageOverride": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.LanguageOverride"
+    },
+    "ios:ICMUserAttributes.name": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Name"
+    },
+    "ios:ICMUserAttributes.phone": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.Phone"
+    },
+    "ios:ICMUserAttributes.signedUpAt": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.SignedUpAt"
+    },
+    "ios:ICMUserAttributes.unsubscribedFromEmails": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.UnsubscribedFromEmails"
+    },
+    "ios:ICMUserAttributes.userId": {
+      "status": "covered",
+      "member": "IntercomUserAttributes.UserId"
+    },
+    "ios:Intercom+enableLogging": {
+      "status": "covered",
+      "member": "IIntercom.EnableLogging"
+    },
+    "ios:Intercom+fetchHelpCenterCollection:withCompletion:": {
+      "status": "covered",
+      "member": "IIntercom.FetchHelpCenterCollectionAsync"
+    },
+    "ios:Intercom+fetchHelpCenterCollectionsWithCompletion:": {
+      "status": "covered",
+      "member": "IIntercom.FetchHelpCenterCollectionsAsync"
+    },
+    "ios:Intercom+fetchLoggedInUserAttributes": {
+      "status": "covered",
+      "member": "IIntercom.FetchLoggedInUserAttributes"
+    },
+    "ios:Intercom+handleIntercomPushNotification:": {
+      "status": "covered",
+      "member": "IIntercom.HandlePush"
+    },
+    "ios:Intercom+handleIntercomRichPushNotificationContent:withContentHandler:": {
+      "status": "skipped",
+      "reason": "Rich-push Notification Service Extension is outside the agreed push scope (token + detection) and has no Android counterpart."
+    },
+    "ios:Intercom+hideIntercom": {
+      "status": "covered",
+      "member": "IIntercom.HideIntercom"
+    },
+    "ios:Intercom+isIntercomPushNotification:": {
+      "status": "covered",
+      "member": "IIntercom.IsIntercomPush"
+    },
+    "ios:Intercom+isUserLoggedIn": {
+      "status": "covered",
+      "member": "IIntercom.IsUserLoggedIn"
+    },
+    "ios:Intercom+logEventWithName:": {
+      "status": "covered",
+      "member": "IIntercom.LogEvent"
+    },
+    "ios:Intercom+logEventWithName:metaData:": {
+      "status": "covered",
+      "member": "IIntercom.LogEvent"
+    },
+    "ios:Intercom+loginUnidentifiedUserWithSuccess:failure:": {
+      "status": "covered",
+      "member": "IIntercom.LoginUnidentifiedUserAsync"
+    },
+    "ios:Intercom+loginUserWithUserAttributes:success:failure:": {
+      "status": "covered",
+      "member": "IIntercom.LoginUserAsync"
+    },
+    "ios:Intercom+logout": {
+      "status": "covered",
+      "member": "IIntercom.Logout"
+    },
+    "ios:Intercom+presentContent:": {
+      "status": "covered",
+      "member": "IIntercom.PresentContent"
+    },
+    "ios:Intercom+presentIntercom": {
+      "status": "covered",
+      "member": "IIntercom.Present"
+    },
+    "ios:Intercom+presentIntercom:": {
+      "status": "covered",
+      "member": "IIntercom.Present"
+    },
+    "ios:Intercom+presentMessageComposer:": {
+      "status": "covered",
+      "member": "IIntercom.PresentMessageComposer"
+    },
+    "ios:Intercom+searchHelpCenter:withCompletion:": {
+      "status": "covered",
+      "member": "IIntercom.SearchHelpCenterAsync"
+    },
+    "ios:Intercom+setApiKey:forAppId:": {
+      "status": "covered",
+      "member": "IIntercom.Initialize"
+    },
+    "ios:Intercom+setAuthTokens:success:failure:": {
+      "status": "covered",
+      "member": "IIntercom.SetAuthTokensAsync"
+    },
+    "ios:Intercom+setBottomPadding:": {
+      "status": "covered",
+      "member": "IIntercom.SetBottomPaddingDp"
+    },
+    "ios:Intercom+setDeviceToken:failure:": {
+      "status": "covered",
+      "member": "IIntercom.SendPushTokenToIntercomAsync"
+    },
+    "ios:Intercom+setInAppMessagesVisible:": {
+      "status": "covered",
+      "member": "IIntercom.SetInAppMessagesVisible"
+    },
+    "ios:Intercom+setLauncherVisible:": {
+      "status": "covered",
+      "member": "IIntercom.SetLauncherVisible"
+    },
+    "ios:Intercom+setNeedsStatusBarAppearanceUpdate": {
+      "status": "skipped",
+      "reason": "UIKit status-bar hook with no Android counterpart; iOS consumers can call IntercomBinding.Intercom directly."
+    },
+    "ios:Intercom+setUserHash:": {
+      "status": "covered",
+      "member": "IIntercom.SetUserHash"
+    },
+    "ios:Intercom+setUserJwt:": {
+      "status": "covered",
+      "member": "IIntercom.SetUserJwt"
+    },
+    "ios:Intercom+unreadConversationCount": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCount"
+    },
+    "ios:Intercom+updateUser:success:failure:": {
+      "status": "covered",
+      "member": "IIntercom.UpdateUserAsync"
+    },
+    "ios:IntercomContent+articleWithId:": {
+      "status": "covered",
+      "member": "IntercomContent.Article"
+    },
+    "ios:IntercomContent+carouselWithId:": {
+      "status": "covered",
+      "member": "IntercomContent.Carousel"
+    },
+    "ios:IntercomContent+conversationWithId:": {
+      "status": "covered",
+      "member": "IntercomContent.Conversation"
+    },
+    "ios:IntercomContent+helpCenterCollectionsWithIds:": {
+      "status": "covered",
+      "member": "IntercomContent.HelpCenterCollections"
+    },
+    "ios:IntercomContent+surveyWithId:": {
+      "status": "covered",
+      "member": "IntercomContent.Survey"
+    },
+    "ios:IntercomContentProtocol.contentId": {
+      "status": "skipped",
+      "reason": "Protocol backing IntercomContent; the factory methods are the public entry points."
+    },
+    "ios:IntercomContentProtocol.type": {
+      "status": "skipped",
+      "reason": "Protocol backing IntercomContent; the factory methods are the public entry points."
+    },
+    "ios:const:ICMHelpCenterDataErrorDomain": {
+      "status": "covered",
+      "member": "IntercomException.NativeDomain"
+    },
+    "ios:const:IntercomDidStartNewConversationNotification": {
+      "status": "skipped",
+      "reason": "iOS-only notification; the Android SDK exposes no equivalent callback."
+    },
+    "ios:const:IntercomUnreadConversationCountDidChangeNotification": {
+      "status": "covered",
+      "member": "IIntercom.UnreadConversationCountChanged"
+    },
+    "ios:const:IntercomUnreadTicketCountDidChangeNotification": {
+      "status": "skipped",
+      "reason": "Unread ticket counts have no Android counterpart, so there is no cross-platform event to raise."
+    },
+    "ios:const:IntercomWindowDidHideNotification": {
+      "status": "skipped",
+      "reason": "iOS-only Messenger window lifecycle notification; the Android SDK exposes no equivalent callback."
+    },
+    "ios:const:IntercomWindowDidShowNotification": {
+      "status": "skipped",
+      "reason": "iOS-only Messenger window lifecycle notification; the Android SDK exposes no equivalent callback."
+    },
+    "ios:const:IntercomWindowWillHideNotification": {
+      "status": "skipped",
+      "reason": "iOS-only Messenger window lifecycle notification; the Android SDK exposes no equivalent callback."
+    },
+    "ios:const:IntercomWindowWillShowNotification": {
+      "status": "skipped",
+      "reason": "iOS-only Messenger window lifecycle notification; the Android SDK exposes no equivalent callback."
+    },
+    "ios:enum:ContentType.article": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
+    "ios:enum:ContentType.carousel": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
+    "ios:enum:ContentType.conversation": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
+    "ios:enum:ContentType.helpCenterCollections": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
+    "ios:enum:ContentType.survey": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
+    "ios:enum:ICMHelpCenterDataError.contentNotAvailable": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:ICMHelpCenterDataError.networkError": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:ICMHelpCenterDataError.noAppRegistered": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:ICMHelpCenterDataError.noUserRegistered": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:ICMHelpCenterDataError.somethingWentWrong": {
+      "status": "covered",
+      "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:Space.helpCenter": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "ios:enum:Space.home": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "ios:enum:Space.messages": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    },
+    "ios:enum:Space.tickets": {
+      "status": "covered",
+      "member": "IntercomSpace"
+    }
+  }
+}

@@ -69,5 +69,12 @@ echo "  - $DEST"
 echo "  - Directory.Build.props (IntercomIosSdkVersion=$VERSION)"
 echo "  - eng/intercom-ios.sha256"
 echo ""
-echo "Next: run eng/generate-ios-binding.sh, fix any API drift in"
+
+# Show what the new SDK changed about the public API, and record it, so the API
+# delta lands in the same PR as the version bump instead of being discovered later.
+echo "API delta:"
+"$REPO_ROOT/eng/api-coverage.sh" --update
+echo ""
+echo "Next: triage any symbol newly marked \"todo\" in eng/api-coverage.json,"
+echo "run eng/generate-ios-binding.sh, fix any API drift in"
 echo "src/Plugin.Maui.Intercom/Intercom.macios.cs, and commit the result."
