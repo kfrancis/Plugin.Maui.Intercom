@@ -146,8 +146,16 @@ public partial class MainPage : ContentPage
         if (!string.IsNullOrEmpty(_options.Secret))
         {
             // Only needed when identity verification is enabled for the workspace, and only
-            // done on device because this is a sample — sign it on your server instead.
-            Intercom.SetUserHash(_options.ComputeUserHash(email));
+            // done on device because this is a sample — issue these from your server instead.
+            // A workspace with Messenger Security enforced rejects the hash and needs the JWT.
+            if (JwtSwitch.IsToggled)
+            {
+                Intercom.SetUserJwt(_options.ComputeUserJwt(email: email));
+            }
+            else
+            {
+                Intercom.SetUserHash(_options.ComputeUserHash(email));
+            }
         }
 
         var attributes = new IntercomUserAttributes

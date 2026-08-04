@@ -57,6 +57,11 @@
                 HorizontalOptions="Fill"
                 Text="Log in identified user (email + attributes)" />
 
+            <HorizontalStackLayout Spacing="10">
+                <Switch x:Name="JwtSwitch" />
+                <Label Text="Identity verification by JWT, not hash" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
             <Entry
                 x:Name="NameEntry"
                 Placeholder="Name"

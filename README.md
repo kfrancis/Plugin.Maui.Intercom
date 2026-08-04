@@ -216,17 +216,37 @@ thing by hand; `UseIntercom()` with no arguments registers `IIntercom` and initi
 
 #### Identity verification
 
-`options.Secret` resolves the platform's secret, and `options.ComputeUserHash(identifier)`
-turns it into the HMAC-SHA256 digest `SetUserHash` wants:
+`options.Secret` resolves the platform's secret. `ComputeUserHash` turns it into the
+HMAC-SHA256 digest `SetUserHash` wants; `ComputeUserJwt` mints the HS256 token `SetUserJwt`
+wants, which is what a workspace with Messenger Security enforced requires:
 
 ```csharp
 Intercom.Default.SetUserHash(options.ComputeUserHash("user@example.com"));
+
+// or, with Messenger Security enforced — one hour by default
+Intercom.Default.SetUserJwt(options.ComputeUserJwt("user-123", "user@example.com"));
+
+// sensitive attributes Intercom only accepts through a JWT
+Intercom.Default.SetUserJwt(options.ComputeUserJwt(
+    "user-123",
+    lifetime: TimeSpan.FromMinutes(15),
+    additionalClaims: new Dictionary<string, object?>
+    {
+        ["sensitive_attribute1"] = "...",
+        ["plan_tier"] = 3
+    }));
 ```
 
+`user_id`, `email`, `iat` and `exp` are written for you and are rejected in
+`additionalClaims`. Other claim values must be a string, a numeric type, a `bool` or a
+`DateTimeOffset` (written as Unix seconds); a null value is left out. No IdentityModel
+dependency — an HS256 token is two Base64Url segments and an HMAC.
+
 Anything in `IntercomOptions` ships inside the app binary and is extractable. That is fine for
-the API keys, which are client-side by design — it is not fine for the secret. Intercom's
-guidance is to compute the hash, or sign the JWT for `SetUserJwt`, on your server and hand the
-app the result. `AndroidSecret`/`IosSecret` are a development convenience.
+the API keys, which are client-side by design — it is not fine for the secret, and a JWT minted
+on device is a bearer token sitting next to the secret that signs it. Intercom's guidance is to
+issue both from your server and hand the app the result. `AndroidSecret`/`IosSecret`,
+`ComputeUserHash` and `ComputeUserJwt` are a development convenience.
 
 ### Logging users in
 

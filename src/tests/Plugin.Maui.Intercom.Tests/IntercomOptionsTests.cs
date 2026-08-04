@@ -1,3 +1,7 @@
+using System.Buffers.Text;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
 namespace Plugin.Maui.Intercom.Tests;
@@ -72,6 +76,83 @@ public sealed class IntercomOptionsTests
 
         await Assert.That(() => options.ComputeUserHash("user@example.com"))
             .Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task ComputeUserJwtSignsThePayloadWithThePlatformSecret()
+    {
+        var options = Configured(IntercomPlatform.IOS);
+
+        var jwt = options.ComputeUserJwt("user-123", "user@example.com");
+        var (header, payload, _) = Decode(jwt);
+
+        await Assert.That(header.GetProperty("alg").GetString()).IsEqualTo("HS256");
+        await Assert.That(header.GetProperty("typ").GetString()).IsEqualTo("JWT");
+        await Assert.That(payload.GetProperty("user_id").GetString()).IsEqualTo("user-123");
+        await Assert.That(payload.GetProperty("email").GetString()).IsEqualTo("user@example.com");
+        await Assert.That(SignatureIsValid(jwt, "ios-secret")).IsTrue();
+        await Assert.That(SignatureIsValid(jwt, "droid-secret")).IsFalse();
+    }
+
+    [Test]
+    public async Task ComputeUserJwtExpiresAnHourOutByDefault()
+    {
+        var (_, byDefault, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123"));
+        var (_, explicitly, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123", lifetime: TimeSpan.FromMinutes(5)));
+
+        await Assert.That(byDefault.GetProperty("exp").GetInt64() - byDefault.GetProperty("iat").GetInt64()).IsEqualTo(3600);
+        await Assert.That(explicitly.GetProperty("exp").GetInt64() - explicitly.GetProperty("iat").GetInt64()).IsEqualTo(300);
+    }
+
+    [Test]
+    public async Task ComputeUserJwtOmitsTheIdentifierThatWasNotGiven()
+    {
+        var (_, payload, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt(email: "user@example.com"));
+
+        await Assert.That(payload.TryGetProperty("user_id", out _)).IsFalse();
+        await Assert.That(payload.GetProperty("email").GetString()).IsEqualTo("user@example.com");
+    }
+
+    [Test]
+    public async Task ComputeUserJwtCarriesAdditionalClaims()
+    {
+        var stamp = DateTimeOffset.FromUnixTimeSeconds(1_700_000_000);
+        var (_, payload, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?>
+        {
+            ["sensitive_attribute1"] = "medical-record-42",
+            ["plan_tier"] = 3,
+            ["is_beta_tester"] = true,
+            ["signed_up_at"] = stamp,
+            ["absent"] = null
+        }));
+
+        await Assert.That(payload.GetProperty("sensitive_attribute1").GetString()).IsEqualTo("medical-record-42");
+        await Assert.That(payload.GetProperty("plan_tier").GetInt32()).IsEqualTo(3);
+        await Assert.That(payload.GetProperty("is_beta_tester").GetBoolean()).IsTrue();
+        await Assert.That(payload.GetProperty("signed_up_at").GetInt64()).IsEqualTo(1_700_000_000);
+        await Assert.That(payload.TryGetProperty("absent", out _)).IsFalse();
+    }
+
+    [Test]
+    public async Task ComputeUserJwtRejectsBadInput()
+    {
+        var options = Configured(IntercomPlatform.Android);
+
+        await Assert.That(() => options.ComputeUserJwt()).Throws<ArgumentException>();
+        await Assert.That(() => options.ComputeUserJwt("user-123", lifetime: TimeSpan.Zero)).Throws<ArgumentOutOfRangeException>();
+        await Assert.That(() => options.ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?> { ["exp"] = 1 }))
+            .Throws<ArgumentException>();
+        await Assert.That(() => options.ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?> { ["thing"] = new object() }))
+            .Throws<ArgumentException>();
+    }
+
+    [Test]
+    public async Task ComputeUserJwtWithoutASecretThrows()
+    {
+        var options = Configured(IntercomPlatform.IOS);
+        options.IosSecret = null;
+
+        await Assert.That(() => options.ComputeUserJwt("user-123")).Throws<InvalidOperationException>();
     }
 
     [Test]
@@ -162,6 +243,27 @@ public sealed class IntercomOptionsTests
         await Assert.That(() => intercom.Initialize(options)).Throws<InvalidOperationException>();
         await Assert.That(intercom.Calls).IsEmpty();
         await Assert.That(options.IsInitialized).IsFalse();
+    }
+
+    private static (JsonElement Header, JsonElement Payload, byte[] Signature) Decode(string jwt)
+    {
+        var segments = jwt.Split('.');
+        return (
+            JsonDocument.Parse(Base64Url.DecodeFromChars(segments[0])).RootElement,
+            JsonDocument.Parse(Base64Url.DecodeFromChars(segments[1])).RootElement,
+            Base64Url.DecodeFromChars(segments[2]));
+    }
+
+    // Verifies the token the way Intercom's backend would, rather than by re-running the
+    // production code path.
+    private static bool SignatureIsValid(string jwt, string secret)
+    {
+        var lastDot = jwt.LastIndexOf('.');
+        var expected = HMACSHA256.HashData(
+            Encoding.UTF8.GetBytes(secret),
+            Encoding.ASCII.GetBytes(jwt[..lastDot]));
+
+        return CryptographicOperations.FixedTimeEquals(expected, Base64Url.DecodeFromChars(jwt[(lastDot + 1)..]));
     }
 
     private static IConfiguration Configuration(Dictionary<string, string?> values) =>

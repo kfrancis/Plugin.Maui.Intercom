@@ -1,5 +1,9 @@
+using System.Buffers;
+using System.Buffers.Text;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 
 namespace Plugin.Maui.Intercom;
@@ -187,6 +191,112 @@ public sealed class IntercomOptions
     }
 
     /// <summary>
+    ///     Builds a signed identity-verification JWT, using the running platform's secret.
+    /// </summary>
+    /// <param name="userId">The user ID the user will be logged in with, as the <c>user_id</c> claim.</param>
+    /// <param name="email">The email, as the <c>email</c> claim. Either this or <paramref name="userId" /> must be set.</param>
+    /// <param name="lifetime">How long the token stays valid. One hour by default.</param>
+    /// <param name="additionalClaims">
+    ///     Further claims — the sensitive user attributes Intercom accepts only through a JWT.
+    ///     Values must be <see cref="string" />, a numeric type, <see cref="bool" /> or
+    ///     <see cref="DateTimeOffset" /> (written as Unix seconds).
+    /// </param>
+    /// <returns>A compact HS256 JWT, ready for <see cref="IIntercom.SetUserJwt" />.</returns>
+    /// <exception cref="ArgumentException">
+    ///     Neither identifier was given, <paramref name="additionalClaims" /> redeclares a claim
+    ///     this method writes, or a claim value is of an unsupported type.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="lifetime" /> is not positive.</exception>
+    /// <exception cref="InvalidOperationException">No secret is set for the running platform.</exception>
+    /// <remarks>
+    ///     <para>
+    ///         Signed on device, so it carries the same caveat as
+    ///         <see cref="ComputeUserHash" /> and then some: a JWT is a bearer token, and the
+    ///         secret that mints it is sitting in the app binary next to it. Intercom's guidance
+    ///         is to issue these from your backend. This exists for development, and for apps
+    ///         that have accepted that trade-off deliberately.
+    ///     </para>
+    ///     <para>
+    ///         Written by hand rather than with <c>System.IdentityModel.Tokens.Jwt</c>: an HS256
+    ///         token is two Base64Url segments and an HMAC, and a plugin should not pull the
+    ///         IdentityModel stack into every consumer's app to produce one.
+    ///     </para>
+    /// </remarks>
+    public string ComputeUserJwt(
+        string? userId = null,
+        string? email = null,
+        TimeSpan? lifetime = null,
+        IReadOnlyDictionary<string, object?>? additionalClaims = null)
+    {
+        if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException(
+                "An identity-verification JWT needs a user_id or an email claim to identify the user.",
+                nameof(userId));
+        }
+
+        var secret = Secret;
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            throw new InvalidOperationException(
+                $"No identity-verification secret is configured for {Platform}. Set {nameof(AndroidSecret)}/{nameof(IosSecret)} in UseIntercom.");
+        }
+
+        var validFor = lifetime ?? TimeSpan.FromHours(1);
+        if (validFor <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(lifetime), validFor, "A JWT lifetime must be positive.");
+        }
+
+        if (additionalClaims is not null)
+        {
+            foreach (var claim in additionalClaims.Keys)
+            {
+                if (ReservedClaims.Contains(claim))
+                {
+                    throw new ArgumentException(
+                        $"'{claim}' is written by {nameof(ComputeUserJwt)} itself. Pass it through the {nameof(userId)}, {nameof(email)} or {nameof(lifetime)} parameters instead.",
+                        nameof(additionalClaims));
+                }
+            }
+        }
+
+        var issuedAt = DateTimeOffset.UtcNow;
+        var payload = new ArrayBufferWriter<byte>();
+        using (var writer = new Utf8JsonWriter(payload))
+        {
+            writer.WriteStartObject();
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                writer.WriteString("user_id", userId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                writer.WriteString("email", email);
+            }
+
+            if (additionalClaims is not null)
+            {
+                foreach (var (name, value) in additionalClaims)
+                {
+                    WriteClaim(writer, name, value);
+                }
+            }
+
+            writer.WriteNumber("iat", issuedAt.ToUnixTimeSeconds());
+            writer.WriteNumber("exp", issuedAt.Add(validFor).ToUnixTimeSeconds());
+            writer.WriteEndObject();
+        }
+
+        var signingInput = Encoding.ASCII.GetBytes($"{JwtHeader}.{Base64Url.EncodeToString(payload.WrittenSpan)}");
+        var signature = HMACSHA256.HashData(Encoding.UTF8.GetBytes(secret), signingInput);
+
+        return $"{Encoding.ASCII.GetString(signingInput)}.{Base64Url.EncodeToString(signature)}";
+    }
+
+    /// <summary>
     ///     Reads options out of configuration, leaving properties absent from it alone.
     /// </summary>
     /// <param name="configuration">
@@ -257,6 +367,50 @@ public sealed class IntercomOptions
     ///     run <see cref="IIntercom.Initialize" />.
     /// </summary>
     internal bool TryClaimInitialization() => Interlocked.Exchange(ref _initialized, 1) == 0;
+
+    /// <summary>
+    ///     Claims <see cref="ComputeUserJwt" /> writes itself, so a caller cannot end up with a
+    ///     token carrying two of any of them.
+    /// </summary>
+    private static readonly HashSet<string> ReservedClaims =
+        new(["user_id", "email", "iat", "exp"], StringComparer.Ordinal);
+
+    /// <summary>The fixed <c>{"alg":"HS256","typ":"JWT"}</c> header, already Base64Url encoded.</summary>
+    private static readonly string JwtHeader = Base64Url.EncodeToString("""{"alg":"HS256","typ":"JWT"}"""u8);
+
+    private static void WriteClaim(Utf8JsonWriter writer, string name, object? value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        switch (value)
+        {
+            case null:
+                // A null claim is an absent claim; writing it would just make the token bigger.
+                break;
+            case string text:
+                writer.WriteString(name, text);
+                break;
+            case bool flag:
+                writer.WriteBoolean(name, flag);
+                break;
+            case DateTimeOffset timestamp:
+                writer.WriteNumber(name, timestamp.ToUnixTimeSeconds());
+                break;
+            case byte or sbyte or short or ushort or int or uint or long:
+                writer.WriteNumber(name, Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                break;
+            case ulong unsigned:
+                writer.WriteNumber(name, unsigned);
+                break;
+            case float or double or decimal:
+                writer.WriteNumber(name, Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                break;
+            default:
+                throw new ArgumentException(
+                    $"Claim '{name}' is a {value.GetType().Name}. JWT claims must be a string, a numeric type, a bool or a DateTimeOffset.",
+                    nameof(value));
+        }
+    }
 
     private static string? Read(IConfiguration configuration, string key) =>
         string.IsNullOrWhiteSpace(configuration[key]) ? null : configuration[key];
