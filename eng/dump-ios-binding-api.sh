@@ -22,7 +22,13 @@ if [[ ! -d "$OBJ" ]]; then
   exit 1
 fi
 
-mapfile -t GENERATED < <(find "$OBJ" -name '*.cs' -not -name '*.AssemblyInfo.cs' -not -name '*.GlobalUsings.g.cs' | sort)
+# Read into the array with a loop rather than `mapfile`: this script only ever runs on
+# macOS (the binding cannot be generated anywhere else) and macOS ships bash 3.2, which
+# predates mapfile/readarray.
+GENERATED=()
+while IFS= read -r file; do
+  GENERATED+=("$file")
+done < <(find "$OBJ" -name '*.cs' -not -name '*.AssemblyInfo.cs' -not -name '*.GlobalUsings.g.cs' | sort)
 if [[ ${#GENERATED[@]} -eq 0 ]]; then
   echo "ERROR: no generated sources under $OBJ. Did the binding build succeed?" >&2
   exit 1
