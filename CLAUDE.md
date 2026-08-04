@@ -101,6 +101,19 @@ Four things follow, all of which have bitten:
 `eng/validate-packages.sh` asserts every band in every package, and CI's consumer test
 runs once per iOS band — a green net10 run says nothing about net9.
 
+**Each band's iOS tooling pack demands one exact Xcode.** `_ValidateXcodeVersion` errors
+(E0191) on any other: the net9 pack on macos-26 is 26.5.9004 and wants Xcode 26.5, the
+net10 pack wants 26.6. The check is gated on `'$(_CanOutputAppBundle)' == 'true'`, so a
+*library* — including the iOS binding itself — builds under either, and only app builds
+notice. That is why the `consumer-test` matrix selects Xcode per band instead of using
+the workflow-wide `$XCODE_PATH`, and why `ValidateXcodeVersion=false` is the wrong
+answer there: proving a real consumer app builds is the job's entire purpose.
+
+Related: the *tooling* pack version and the `TargetPlatformVersion` are independent. The
+binding packs into `lib/net9.0-ios18.0/` (TPV 18.0, what a consumer on bare `net9.0-ios`
+resolves) while being built by the 26.5 tooling pack. A consumer at a higher TPV restores
+the 18.0 lib fine; pinning the pack path to 26.x would break the common case.
+
 ### The Android surface has a hard ceiling; iOS does not
 
 The Android binding binds only `com.intercom.mauiintercom` (confirmable in

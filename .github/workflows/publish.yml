@@ -340,14 +340,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tfm: [ net9.0-ios, net10.0-ios ]
+        # Xcode is pinned per band, not to the workflow-wide $XCODE_PATH. Each .NET for
+        # iOS tooling pack demands one exact Xcode major.minor and errors otherwise
+        # (_ValidateXcodeVersion / E0191): the net9 pack on this image is 26.5.9004 and
+        # wants Xcode 26.5, the net10 pack wants 26.6. Building the net9 app under 26.6
+        # fails with "This version of .NET for iOS (26.5.9004) requires Xcode 26.5".
+        #
+        # The check is gated on '$(_CanOutputAppBundle)' == 'true', which is why the
+        # ios-binding job builds a net9 library under 26.6 without complaint — only an
+        # app build validates Xcode. Suppressing it with ValidateXcodeVersion=false would
+        # defeat the point of this job, which exists to prove a real consumer app builds.
+        include:
+          - tfm: net9.0-ios
+            xcode: /Applications/Xcode_26.5.app
+          - tfm: net10.0-ios
+            xcode: /Applications/Xcode_26.6.app
     steps:
       - uses: actions/checkout@v5
         with:
           show-progress: false
 
-      - name: Select Xcode 26.6
-        run: sudo xcode-select -s "$XCODE_PATH"
+      - name: Select Xcode for ${{ matrix.tfm }}
+        run: |
+          test -d "${{ matrix.xcode }}" || { echo "::error::${{ matrix.xcode }} is not on this runner image"; exit 1; }
+          sudo xcode-select -s "${{ matrix.xcode }}"
+          xcodebuild -version
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
