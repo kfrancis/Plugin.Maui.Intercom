@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
+    <!-- The sample is a manual test harness, not a shipped package, so it stays on the
+         current band only — net9 consumption is covered by eng/test-consumer.sh, which
+         builds a clean-room app on both. Overridable so build.ps1 can drop the iOS TFM
+         on Windows; see the TFM matrix note in Directory.Build.props. -->
+    <TargetFrameworks Condition="'$(IntercomSampleTargetFrameworks)' == ''">net10.0-android;net10.0-ios</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IntercomSampleTargetFrameworks)' != ''">$(IntercomSampleTargetFrameworks)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>MauiSample</RootNamespace>
     <UseMaui>true</UseMaui>

@@ -26,6 +26,55 @@
     <MinVerSkip Condition="'$(Version)' != ''">true</MinVerSkip>
   </PropertyGroup>
 
+  <!-- Target framework matrix.
+
+       Every shipped package multi-targets the net9.0 and net10.0 bands. The net9 band
+       exists because .NET 9 is supported until 2026-11-10 and real consumers are still
+       on it; a net9.0-ios app cannot restore a net10.0-ios lib, so shipping only net10
+       locks them out entirely. Drop the net9 entries after that date.
+
+       Both bands build from the .NET 10 SDK — the installed android/ios workloads carry
+       the net9 reference packs, so no second SDK band is required on the build machine.
+       Resolved platform versions (they decide the lib/ and buildTransitive/ pack paths):
+         net9.0-android  -> 35.0      net10.0-android -> 36.0
+         net9.0-ios      -> 18.0      net10.0-ios     -> 26.0
+
+       Keep these lists in one place: the four package projects have to agree, and drift
+       between them shows up as a consumer restore failure, not a build failure here.
+
+       Overridable (hence the Conditions): a Windows or Linux developer has no way to
+       produce the iOS binding at the current version, so build.ps1 narrows the plugin to
+       the Android TFMs rather than failing restore on a package that cannot exist yet.
+       Set them as environment variables or global properties — a semicolon-separated
+       value does not survive `-p:` on the command line. -->
+  <PropertyGroup>
+    <IntercomIosTargetFrameworks Condition="'$(IntercomIosTargetFrameworks)' == ''">net9.0-ios;net10.0-ios</IntercomIosTargetFrameworks>
+    <IntercomAndroidTargetFrameworks Condition="'$(IntercomAndroidTargetFrameworks)' == ''">net9.0-android;net10.0-android</IntercomAndroidTargetFrameworks>
+    <IntercomPluginTargetFrameworks Condition="'$(IntercomPluginTargetFrameworks)' == ''">net9.0-android;net9.0-ios;net10.0-android;net10.0-ios</IntercomPluginTargetFrameworks>
+  </PropertyGroup>
+
+  <!-- MAUI version per band.
+
+       $(MauiVersion) is supplied by the installed workload and tracks the SDK band
+       (10.0.x here), so a net9.0-* inner build would ask for Microsoft.Maui.Controls
+       10.0.x — a package with no net9.0-* lib, which fails restore with NU1202. The
+       MAUI workload sets MauiVersion only when it is empty, so pinning it here wins.
+
+       This has to be conditioned on $(TargetFramework), which is empty in the outer
+       build of a multi-targeted project and set in every inner build. Restore evaluates
+       per TFM, so the condition is live where it matters. -->
+  <PropertyGroup>
+    <IntercomMauiVersionNet9>9.0.120</IntercomMauiVersionNet9>
+    <MauiVersion Condition="$(TargetFramework.StartsWith('net9.0'))">$(IntercomMauiVersionNet9)</MauiVersion>
+  </PropertyGroup>
+
+  <!-- NETSDK1202: "the workload 'net9.0-android' is out of support". Known and
+       deliberate — see the TFM matrix note above. Suppressed rather than left to shout
+       on every build, because Release builds promote warnings to errors in the plugin. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NETSDK1202</NoWarn>
+  </PropertyGroup>
+
   <!-- Centrally pinned tool/SDK versions.
        Change these in one place; eng/ scripts and CI read them from here. -->
   <PropertyGroup>

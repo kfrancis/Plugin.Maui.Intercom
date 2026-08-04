@@ -6,11 +6,16 @@
 #   android        → pack Plugin.Maui.Intercom.Android.Binding (Windows, Gradle)
 #   ios-binding    → pack Plugin.Maui.Intercom.iOS.Binding on macOS via swift-dotnet-bindings
 #   main-package   → pack Plugin.Maui.Intercom against the locally produced binding packages
-#   consumer-test  → clean-room MAUI app consuming ONLY the packed NuGets (simulator + device)
+#   consumer-test  → clean-room MAUI app consuming ONLY the packed NuGets (simulator + device),
+#                    once per shipped iOS band
 #   deploy         → push the exact validated artifacts to NuGet.org on release
 #
 # Pinned toolchain: .NET 10 (global.json), Xcode 26.6, SwiftBindings.Sdk (global.json
 # msbuild-sdks), Intercom iOS 18.7.2 (vendored xcframework), Intercom Android 17.4.1 (vendored AARs).
+#
+# Every package multi-targets net9.0 and net10.0 (see the TFM matrix in Directory.Build.props).
+# Both bands build from the .NET 10 SDK pinned in global.json — the android/ios workloads carry
+# the net9 reference packs — so no job needs a second SDK band installed.
 
 name: publish
 on:
@@ -323,11 +328,19 @@ jobs:
             nuget/Plugin.Maui.Intercom.${{ needs.version.outputs.version }}.snupkg
 
   # ──────────────────────────────────────────────────────────────────────────
+  # Runs once per shipped iOS band. The two restore different assets out of the same
+  # nupkg (lib/net9.0-ios18.0 vs lib/net10.0-ios26.0, and a sidecar each), so a green
+  # net10 run proves nothing about net9 — which is the band that exists for consumers
+  # this repo cannot otherwise reach.
   consumer-test:
     runs-on: macos-26
     needs: [ version, main-package ]
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        tfm: [ net9.0-ios, net10.0-ios ]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -350,10 +363,10 @@ jobs:
           merge-multiple: true
           path: nuget
 
-      - name: Clean-room consumer test (simulator + ios-arm64)
+      - name: Clean-room consumer test (${{ matrix.tfm }}, simulator + ios-arm64)
         run: |
           chmod +x eng/test-consumer.sh
-          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --clear-cache
+          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --tfm ${{ matrix.tfm }} --clear-cache
 
       - name: Diagnostics on failure
         if: failure()
@@ -370,7 +383,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: consumer-test-binlog
+          name: consumer-test-binlog-${{ matrix.tfm }}
           path: /tmp/icom-test/*.binlog
           retention-days: 7
           if-no-files-found: ignore

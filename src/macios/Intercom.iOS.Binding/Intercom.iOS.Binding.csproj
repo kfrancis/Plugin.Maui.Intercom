@@ -12,7 +12,18 @@
      and eng/update-intercom.sh to move to a new pinned Intercom SDK version. -->
 <Project Sdk="SwiftBindings.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-ios</TargetFramework>
+    <!-- net9.0-ios;net10.0-ios — see the TFM matrix note in Directory.Build.props.
+
+         SwiftBindings.Sdk documents a .NET 10 floor, but nothing in Sdk.props/Sdk.targets
+         enforces the band: the SWIFTBIND010 gate matches on the platform substring
+         (TargetFramework.Contains('ios')), the pack layout derives from
+         $(TargetFramework) + $(TargetPlatformVersion), and this project runs the pure-ObjC
+         lane, where the implicit SwiftBindings.Runtime and SwiftBindings.Apple package
+         references are skipped outright — so there is no managed runtime assembly whose
+         band has to match the consumer's. Generation runs once per inner build.
+         Upstream question filed as
+         https://github.com/justinwojo/swift-dotnet-bindings/issues/45 -->
+    <TargetFrameworks>$(IntercomIosTargetFrameworks)</TargetFrameworks>
     <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 
     <!-- Bind Intercom's Objective-C surface only (pure-ObjC pipeline).
