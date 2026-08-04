@@ -113,23 +113,84 @@ public class MainPage : ContentPage
         button.Clicked += (_, _) =>
         {
             // Exercises the full public surface so the managed binding and the
-            // native frameworks must resolve and link.
+            // native frameworks must resolve and link. Every IIntercom member belongs
+            // here — a member nothing references is a member whose native symbol the
+            // linker never has to find. Async calls are discarded rather than awaited:
+            // this is a link check, and nothing is initialized against a real workspace.
             var intercom = Intercom.Default;
-            intercom.EnableLogging();
+
+            intercom.EnableLogging(IntercomLogLevel.Verbose);
             intercom.Initialize("placeholder_api_key", "placeholder_app_id");
+            intercom.ChangeWorkspace("placeholder_api_key", "placeholder_app_id");
+
             intercom.SetUserHash("placeholder");
-            intercom.Register(() => { }, _ => { });
+            intercom.SetUserJwt("placeholder");
+            _ = intercom.LoginUnidentifiedUserAsync();
+
+            var attributes = new IntercomUserAttributes
+            {
+                UserId = "user-1",
+                Email = "test@example.com",
+                Name = "Consumer Test",
+                Phone = "+353 1 234 5678",
+                LanguageOverride = "en",
+                SignedUpAt = DateTimeOffset.UtcNow,
+                UnsubscribedFromEmails = false,
+            };
+            attributes.CustomAttributes["items_in_cart"] = 8;
+            attributes.Companies.Add(new IntercomCompany
+            {
+                CompanyId = "company-1",
+                Name = "Consumer Co",
+                Plan = "Pro",
+                MonthlySpend = 99,
+                CreatedAt = DateTimeOffset.UtcNow,
+            });
+
+            _ = intercom.LoginUserAsync(attributes);
+            _ = intercom.UpdateUserAsync(attributes);
+            _ = intercom.SetAuthTokensAsync(new Dictionary<string, string> { ["token"] = "value" });
             _ = intercom.IsUserLoggedIn;
-            intercom.RegisterWithUserId("user-1", () => { }, _ => { });
-            intercom.RegisterWithEmail("test@example.com", () => { }, _ => { });
-            intercom.PresentMessenger(null);
-            intercom.PresentMessenger("hello");
-            intercom.PresentHelpCenter();
-            intercom.PresentSupportCenter();
-            intercom.PresentCarousel("carousel-1");
-            intercom.SetVisible(true);
-            intercom.SetBottomPadding(10);
+            _ = intercom.FetchLoggedInUserAttributes();
+
             intercom.LogEvent("consumer_test");
+            intercom.LogEvent("consumer_test", new Dictionary<string, object?> { ["count"] = 1 });
+
+            intercom.Present();
+            intercom.Present(IntercomSpace.Messages);
+            intercom.Present(IntercomSpace.HelpCenter);
+            intercom.Present(IntercomSpace.Tickets);
+            intercom.PresentMessageComposer();
+            intercom.PresentMessageComposer("hello");
+            intercom.PresentContent(new IntercomContent.Article("article-1"));
+            intercom.PresentContent(new IntercomContent.Carousel("carousel-1"));
+            intercom.PresentContent(new IntercomContent.Survey("survey-1"));
+            intercom.PresentContent(new IntercomContent.Conversation("conversation-1"));
+            intercom.PresentContent(new IntercomContent.Ticket("ticket-1"));
+            intercom.PresentContent(new IntercomContent.HelpCenterCollections(["collection-1"]));
+            intercom.HideIntercom();
+
+            intercom.SetLauncherVisible(true);
+            intercom.SetInAppMessagesVisible(true);
+            intercom.SetBottomPaddingDp(10);
+            intercom.SetThemeMode(IntercomThemeMode.Dark);
+
+            _ = intercom.UnreadConversationCount;
+            EventHandler<int> onUnreadCountChanged = (_, _) => { };
+            intercom.UnreadConversationCountChanged += onUnreadCountChanged;
+            intercom.UnreadConversationCountChanged -= onUnreadCountChanged;
+
+            _ = intercom.FetchHelpCenterCollectionsAsync();
+            _ = intercom.FetchHelpCenterCollectionAsync("collection-1");
+            _ = intercom.SearchHelpCenterAsync("refund");
+
+            _ = intercom.SendPushTokenToIntercomAsync("00ff");
+            var payload = new Dictionary<string, string> { ["message"] = "test" };
+            if (intercom.IsIntercomPush(payload))
+            {
+                intercom.HandlePush(payload);
+            }
+
             intercom.Logout();
             status.Text = "API exercised";
         };
