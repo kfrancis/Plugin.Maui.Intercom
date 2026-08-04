@@ -6,11 +6,16 @@
 #   android        → pack Plugin.Maui.Intercom.Android.Binding (Windows, Gradle)
 #   ios-binding    → pack Plugin.Maui.Intercom.iOS.Binding on macOS via swift-dotnet-bindings
 #   main-package   → pack Plugin.Maui.Intercom against the locally produced binding packages
-#   consumer-test  → clean-room MAUI app consuming ONLY the packed NuGets (simulator + device)
+#   consumer-test  → clean-room MAUI app consuming ONLY the packed NuGets (simulator + device),
+#                    once per shipped iOS band
 #   deploy         → push the exact validated artifacts to NuGet.org on release
 #
 # Pinned toolchain: .NET 10 (global.json), Xcode 26.6, SwiftBindings.Sdk (global.json
 # msbuild-sdks), Intercom iOS 18.7.2 (vendored xcframework), Intercom Android 17.4.1 (vendored AARs).
+#
+# Every package multi-targets net9.0 and net10.0 (see the TFM matrix in Directory.Build.props).
+# Both bands build from the .NET 10 SDK pinned in global.json — the android/ios workloads carry
+# the net9 reference packs — so no job needs a second SDK band installed.
 
 name: publish
 on:
@@ -57,6 +62,7 @@ jobs:
   # runs first and catches SDK drift before the expensive macOS jobs start.
   api-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -83,6 +89,7 @@ jobs:
   # name members that actually exist (the half api-coverage.sh cannot check).
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -101,6 +108,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   version:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
@@ -130,6 +138,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   android:
     runs-on: windows-latest
+    timeout-minutes: 45
     needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
@@ -180,6 +189,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   ios-binding:
     runs-on: macos-26
+    timeout-minutes: 45
     needs: [ version, api-coverage, tests ]
     permissions:
       contents: read
@@ -254,6 +264,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   main-package:
     runs-on: macos-26
+    timeout-minutes: 30
     needs: [ version, android, ios-binding ]
     permissions:
       contents: read
@@ -323,18 +334,51 @@ jobs:
             nuget/Plugin.Maui.Intercom.${{ needs.version.outputs.version }}.snupkg
 
   # ──────────────────────────────────────────────────────────────────────────
+  # Runs once per shipped iOS band. The two restore different assets out of the same
+  # nupkg (lib/net9.0-ios18.0 vs lib/net10.0-ios26.0, and a sidecar each), so a green
+  # net10 run proves nothing about net9 — which is the band that exists for consumers
+  # this repo cannot otherwise reach.
   consumer-test:
     runs-on: macos-26
+    timeout-minutes: 75
     needs: [ version, main-package ]
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # Xcode is pinned per band, not to the workflow-wide $XCODE_PATH. Each .NET for
+        # iOS tooling pack demands one exact Xcode major.minor and errors otherwise
+        # (_ValidateXcodeVersion / E0191): the net9 pack on this image is 26.5.9004 and
+        # wants Xcode 26.5, the net10 pack wants 26.6. Building the net9 app under 26.6
+        # fails with "This version of .NET for iOS (26.5.9004) requires Xcode 26.5".
+        #
+        # The check is gated on '$(_CanOutputAppBundle)' == 'true', which is why the
+        # ios-binding job builds a net9 library under 26.6 without complaint — only an
+        # app build validates Xcode. Suppressing it with ValidateXcodeVersion=false would
+        # defeat the point of this job, which exists to prove a real consumer app builds.
+        # fast_simulator drops AOT from the simulator build on the net9 band only. That
+        # step full-AOTs by default (_RunAotCompiler is forced true for the
+        # iossimulator-arm64 RID) and on net9 it ran several times longer than the same
+        # step on net10. The device build still AOTs on both bands, so the coverage given
+        # up is a duplicate AOT of the same code for a different RID.
+        include:
+          - tfm: net9.0-ios
+            xcode: /Applications/Xcode_26.5.app
+            fast_simulator: '--fast-simulator'
+          - tfm: net10.0-ios
+            xcode: /Applications/Xcode_26.6.app
+            fast_simulator: ''
     steps:
       - uses: actions/checkout@v5
         with:
           show-progress: false
 
-      - name: Select Xcode 26.6
-        run: sudo xcode-select -s "$XCODE_PATH"
+      - name: Select Xcode for ${{ matrix.tfm }}
+        run: |
+          test -d "${{ matrix.xcode }}" || { echo "::error::${{ matrix.xcode }} is not on this runner image"; exit 1; }
+          sudo xcode-select -s "${{ matrix.xcode }}"
+          xcodebuild -version
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -350,10 +394,10 @@ jobs:
           merge-multiple: true
           path: nuget
 
-      - name: Clean-room consumer test (simulator + ios-arm64)
+      - name: Clean-room consumer test (${{ matrix.tfm }}, simulator + ios-arm64)
         run: |
           chmod +x eng/test-consumer.sh
-          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --clear-cache
+          eng/test-consumer.sh --version ${{ needs.version.outputs.version }} --feed nuget --tfm ${{ matrix.tfm }} --clear-cache ${{ matrix.fast_simulator }}
 
       - name: Diagnostics on failure
         if: failure()
@@ -370,7 +414,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: consumer-test-binlog
+          name: consumer-test-binlog-${{ matrix.tfm }}
           path: /tmp/icom-test/*.binlog
           retention-days: 7
           if-no-files-found: ignore
@@ -379,6 +423,7 @@ jobs:
   deploy:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [ version, main-package, consumer-test ]
     permissions:
       id-token: write

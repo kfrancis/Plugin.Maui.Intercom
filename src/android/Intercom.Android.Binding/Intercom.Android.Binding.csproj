@@ -1,6 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-android</TargetFramework>
+    <!-- net9.0-android;net10.0-android — see the TFM matrix note in Directory.Build.props. -->
+    <TargetFrameworks>$(IntercomAndroidTargetFrameworks)</TargetFrameworks>
+
+    <!-- Serialize the inner builds. DispatchToInnerBuilds passes this straight to its
+         MSBuild task, and the two TFMs cannot run Gradle concurrently: every inner build
+         invokes Gradle in the SAME project directory (src/android/native, the ToolPath of
+         the AndroidGradleProject item) and differs only by an init script that redirects
+         the build directory. $(_AGPOutDirAbs) is per-TFM, but src/android/native/.gradle
+         is not, so two simultaneous `assembleRelease` runs share one project cache. In
+         parallel the net10 build fails partway through resource compilation against paths
+         under obj/Release/net9.0-android/:
+
+             error XAGRDL0000: Resource compilation failed
+               (obj\Release\net9.0-android\gradle\MauiIntercomRelease-08b8a\intermediates\
+                verified_library_resources\release\verifyReleaseResources\compiled\
+                anim_intercom_donothing.xml.flat (The system cannot find the path specified))
+
+         Note the net9 path in an error attributed to the net10 inner build. Serialized,
+         both TFMs build clean. -->
+    <BuildInParallel>false</BuildInParallel>
 
     <!-- Deliberately NOT the default (the project name, 'Intercom.Android.Binding').
          RootNamespace decides where the generated Android Resource class lands, and the
@@ -320,7 +339,22 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
     <!-- Auto-imported by consumers (file name must match PackageId). Strips the duplicate
          Compose runtime-annotation jar that otherwise fails d8 in every consuming app;
-         see the targets file for the full explanation. -->
+         see the targets file for the full explanation.
+
+         One entry per shipped TFM, spelled out rather than derived from
+         $(TargetPlatformVersion): Pack metadata on a None item is collected from the
+         OUTER build of a multi-targeted project, where $(TargetFramework) — and so the
+         resolved platform version — is empty. NuGet needs the platform version in the
+         folder name (NU1012), and a consumer whose TFM has no matching buildTransitive
+         folder silently imports nothing and fails to dex, so a wrong path here is a
+         quiet break rather than a loud one. Distinct PackagePaths, so the two entries
+         do not collide as duplicate package files.
+
+         The versions must track the TFM matrix in Directory.Build.props:
+         net9.0-android -> 35.0, net10.0-android -> 36.0. -->
+    <None Include="buildTransitive\Plugin.Maui.Intercom.Android.Binding.targets"
+          Pack="true"
+          PackagePath="buildTransitive\net9.0-android35.0\" />
     <None Include="buildTransitive\Plugin.Maui.Intercom.Android.Binding.targets"
           Pack="true"
           PackagePath="buildTransitive\net10.0-android36.0\" />

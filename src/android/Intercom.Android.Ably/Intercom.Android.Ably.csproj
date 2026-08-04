@@ -17,7 +17,10 @@
      ships as an opt-in package rather than a dependency of Plugin.Maui.Intercom. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-android</TargetFramework>
+    <!-- Matches Intercom.Android.Binding; see the TFM matrix note in Directory.Build.props.
+         An add-on that shipped only net10 would be unreferenceable from exactly the net9
+         apps the binding now supports. -->
+    <TargetFrameworks>$(IntercomAndroidTargetFrameworks)</TargetFrameworks>
     <!-- Matches Plugin.Maui.Intercom; see its csproj for why the floor is 23. -->
     <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>

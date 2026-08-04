@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Plugin.Maui.Intercom is a .NET MAUI plugin that wraps the native Intercom SDK for Android and iOS. It targets **.NET 10** (`net10.0-android`, `net10.0-ios`).
+Plugin.Maui.Intercom is a .NET MAUI plugin that wraps the native Intercom SDK for Android and iOS. Every package multi-targets **.NET 9 and .NET 10** (`net9.0-android`, `net9.0-ios`, `net10.0-android`, `net10.0-ios`).
 
 **Status**: Both Android and iOS platforms are working.
 
@@ -59,6 +59,61 @@ Three things follow from this and are easy to get wrong:
   shipped headers do not declare, and omits `setUserJwt`, `setAuthTokens`,
   `IntercomContent.Ticket`, `reset()` and the whole `IntercomPushClient`. Read the artifacts.
 
+### The TFM matrix is one list, and net9 is not free
+
+All four package projects take their `TargetFrameworks` from `IntercomIosTargetFrameworks` /
+`IntercomAndroidTargetFrameworks` / `IntercomPluginTargetFrameworks` in
+`Directory.Build.props`. The net9 band is there because .NET 9 is supported until
+2026-11-10 and a `net9.0-ios` app cannot restore a `net10.0-ios` lib — shipping net10 only
+locks those consumers out entirely. Drop the net9 entries after that date.
+
+Both bands build from the single .NET 10 SDK in `global.json`; the installed android/ios
+workloads carry the net9 reference packs, so no second SDK band is needed anywhere,
+including CI. Resolved platform versions decide the pack paths and are spelled out in
+several places: `net9.0-android` → 35.0, `net10.0-android` → 36.0, `net9.0-ios` → 18.0,
+`net10.0-ios` → 26.0.
+
+Four things follow, all of which have bitten:
+
+- **`$(MauiVersion)` is band-specific.** It comes from the workload and tracks the SDK
+  band, so a `net9.0-*` inner build would ask for `Microsoft.Maui.Controls` 10.x — which
+  has no net9 lib (NU1202). `Directory.Build.props` pins it for net9 inner builds;
+  `eng/test-consumer.sh` pins it again, because the clean-room app it generates lives
+  outside the repo and never sees that file.
+- **The Android binding must not build its TFMs in parallel.** Every inner build runs
+  Gradle in the same `src/android/native` project directory, differing only by an init
+  script that redirects the build directory. Concurrently they share one project cache and
+  the net10 build fails resource compilation against `obj/Release/net9.0-android/…` paths.
+  `<BuildInParallel>false</BuildInParallel>` in the binding csproj is what prevents it.
+- **`buildTransitive/` paths are hand-written per TFM.** Pack metadata on a `None` item is
+  collected from the outer build, where `$(TargetPlatformVersion)` is empty, so the folder
+  names cannot be derived. A band with no matching folder imports nothing and every
+  consuming app on it fails to dex — silently, from this repo's point of view.
+- **The iOS binding cannot be built off macOS**, so `build.ps1` narrows the plugin and
+  sample to their Android TFMs (via the overridable TFM properties) instead of pointing
+  restore at a published iOS binding: no published version carries a net9.0-ios asset.
+- **`CompressBindingResourcePackage` has to be forced to `true`.** Its default, `auto`,
+  compresses only when the xcframework has symlinks — Intercom's has none — and the two
+  bands then disagreed: net10 packed a `.resources.zip`, net9 a loose `.resources/` tree
+  worth 76 NU5123 long-path warnings that would land past MAX_PATH under a Windows
+  consumer's package cache. Both bands' iOS SDKs consume either layout.
+
+`eng/validate-packages.sh` asserts every band in every package, and CI's consumer test
+runs once per iOS band — a green net10 run says nothing about net9.
+
+**Each band's iOS tooling pack demands one exact Xcode.** `_ValidateXcodeVersion` errors
+(E0191) on any other: the net9 pack on macos-26 is 26.5.9004 and wants Xcode 26.5, the
+net10 pack wants 26.6. The check is gated on `'$(_CanOutputAppBundle)' == 'true'`, so a
+*library* — including the iOS binding itself — builds under either, and only app builds
+notice. That is why the `consumer-test` matrix selects Xcode per band instead of using
+the workflow-wide `$XCODE_PATH`, and why `ValidateXcodeVersion=false` is the wrong
+answer there: proving a real consumer app builds is the job's entire purpose.
+
+Related: the *tooling* pack version and the `TargetPlatformVersion` are independent. The
+binding packs into `lib/net9.0-ios18.0/` (TPV 18.0, what a consumer on bare `net9.0-ios`
+resolves) while being built by the 26.5 tooling pack. A consumer at a higher TPV restores
+the 18.0 lib fine; pinning the pack path to 26.x would break the common case.
+
 ### The Android surface has a hard ceiling; iOS does not
 
 The Android binding binds only `com.intercom.mauiintercom` (confirmable in
@@ -76,7 +131,7 @@ ordinals.
 
 ### Project Structure
 
-- `src/Plugin.Maui.Intercom/` - Main MAUI plugin library (multi-targeted net10.0-android;net10.0-ios)
+- `src/Plugin.Maui.Intercom/` - Main MAUI plugin library (multi-targeted net9.0/net10.0 × android/ios)
 - `src/android/Intercom.Android.Binding/` - Android native binding project using Gradle interop
 - `src/android/native/` - Native Android Java code (MauiIntercom module)
 - `src/macios/Intercom.iOS.Binding/` - iOS binding generated by swift-dotnet-bindings; contains the vendored, pinned `Intercom.xcframework`
@@ -93,7 +148,8 @@ The iOS binding uses the `SwiftBindings.Sdk` MSBuild project SDK from
 - Binding C# is generated at build time on macOS (Xcode 26+, .NET 10). Generated sources are NOT committed; determinism comes from the pinned SDK + pinned xcframework. CI uploads generated sources as an artifact.
 - Intercom is a mixed Swift/ObjC framework whose full public API is on the ObjC umbrella header, so the binding uses the generator's pure-ObjC pipeline (`SwiftFrameworkType=ObjC` + `IsBindingProject=true`). Generated namespace is `IntercomBinding`; `Intercom.macios.cs` uses `IntercomBinding.Intercom`, `Space`, `IntercomContent`, `ICMUserAttributes`.
 - The binding has no hand-written supplement. `ApiDefinitions.extra.cs` / `StructsAndEnums.extra.cs` existed up to SwiftBindings.Sdk 0.17.0, whose `-fmodules` clang retry dropped every declaration reachable only through `#import <Intercom/SiblingHeader.h>`. 0.18.0 added `-fmodule-name` to that retry, so the ICM* classes, `IntercomContent` and the `Space`/`ContentType` NS_ENUMs are generated; the supplements were removed. Do not reintroduce them — if a member is missing after an Intercom upgrade, that is a generator bug worth filing upstream.
-- The nupkg uses the classic iOS binding layout: `lib/net10.0-iosX.Y/Intercom.iOS.Binding.dll` + `Intercom.iOS.Binding.resources.zip` (full xcframework); the .NET iOS SDK applies the NativeReference in consumers automatically.
+- The nupkg uses the classic iOS binding layout, once per band: `lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`, each holding `Intercom.iOS.Binding.dll` + `Intercom.iOS.Binding.resources.zip` (full xcframework); the .NET iOS SDK applies the NativeReference in consumers automatically.
+- SwiftBindings.Sdk documents a .NET 10 floor, but nothing in its MSBuild enforces the band: the SWIFTBIND010 gate matches on the platform substring, the pack layout derives from `$(TargetFramework)` + `$(TargetPlatformVersion)`, and on the pure-ObjC lane the implicit `SwiftBindings.Runtime` / `SwiftBindings.Apple` package references are skipped, so no managed runtime assembly has to match the consumer's band. Generation runs once per inner build. Asked upstream in [issue #45](https://github.com/justinwojo/swift-dotnet-bindings/issues/45) — if the answer is that net9 is unsupported, the fallback is to compile the generated ApiDefinition in a plain `Microsoft.NET.Sdk` binding project.
 - There is no Xcode wrapper project and no full manual ApiDefinition anymore; do not reintroduce them.
 
 ### Android binding

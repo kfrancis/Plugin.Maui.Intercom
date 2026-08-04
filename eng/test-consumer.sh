@@ -10,21 +10,42 @@
 #   - the app builds (unsigned) for ios-arm64 devices,
 #   - the native Intercom framework + resources land in the .app.
 #
-# Usage: eng/test-consumer.sh --version <pkg-version> --feed <dir-with-nupkgs> [--clear-cache]
+# Usage: eng/test-consumer.sh --version <pkg-version> --feed <dir-with-nupkgs>
+#                             [--tfm net10.0-ios|net9.0-ios] [--clear-cache] [--fast-simulator]
+#
+# --tfm picks the consumer band. The packages multi-target net9.0-ios and net10.0-ios, and
+# the two restore completely different assets out of the same nupkg, so a green net10 run
+# says nothing about net9. CI runs both.
+#
+# --fast-simulator drops AOT from the simulator build only (see the note on that step).
 set -euo pipefail
 
 VERSION=""
 FEED=""
+TFM="net10.0-ios"
 CLEAR_CACHE="false"
+FAST_SIMULATOR="false"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="$2"; shift 2 ;;
     --feed)    FEED="$(cd "$2" && pwd)"; shift 2 ;;
+    --tfm)     TFM="$2"; shift 2 ;;
     --clear-cache) CLEAR_CACHE="true"; shift ;;
+    --fast-simulator) FAST_SIMULATOR="true"; shift ;;
     *) echo "Unknown argument: $1" >&2; exit 2 ;;
   esac
 done
-[[ -n "$VERSION" && -n "$FEED" ]] || { echo "Usage: eng/test-consumer.sh --version <v> --feed <dir> [--clear-cache]" >&2; exit 2; }
+[[ -n "$VERSION" && -n "$FEED" ]] || { echo "Usage: eng/test-consumer.sh --version <v> --feed <dir> [--tfm <tfm>] [--clear-cache]" >&2; exit 2; }
+
+# $(MauiVersion) comes from the installed workload and tracks the SDK band, so a net9.0-ios
+# app would ask for Microsoft.Maui.Controls 10.x — a package with no net9.0-ios lib. The
+# consumer app is generated outside the repo, so Directory.Build.props does not reach it;
+# pin the band's MAUI version here and keep it in step with $(IntercomMauiVersionNet9).
+case "$TFM" in
+  net9.0-ios)  MAUI_VERSION="9.0.120" ;;
+  net10.0-ios) MAUI_VERSION="\$(MauiVersion)" ;;
+  *) echo "ERROR: unsupported --tfm '$TFM' (expected net9.0-ios or net10.0-ios)" >&2; exit 2 ;;
+esac
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   echo "ERROR: the consumer test builds iOS apps and requires macOS." >&2
@@ -36,6 +57,7 @@ dotnet --info | head -20
 xcodebuild -version
 swift --version 2>/dev/null | head -1
 echo "Feed: $FEED"
+echo "Consumer TFM: $TFM (Microsoft.Maui.Controls $MAUI_VERSION)"
 ls -1 "$FEED"
 echo "────────────────────────────────────────────────────────"
 
@@ -65,7 +87,7 @@ EOF
 cat > "$APP_DIR/App.csproj" <<EOF
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0-ios</TargetFramework>
+    <TargetFramework>$TFM</TargetFramework>
     <OutputType>Exe</OutputType>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
@@ -77,7 +99,7 @@ cat > "$APP_DIR/App.csproj" <<EOF
     <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="\$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$MAUI_VERSION" />
     <PackageReference Include="Plugin.Maui.Intercom" Version="$VERSION" />
   </ItemGroup>
 </Project>
@@ -287,7 +309,21 @@ echo "── Simulator build (iossimulator-arm64, unsigned) ──────"
 # on the runner's /usr/bin/codesign rather than on the packages under test: it
 # failed on macos-26/Xcode 26.6 with "App.app: invalid or unsupported format for
 # signature" on a build whose only change was managed code in the plugin.
-dotnet build App.csproj -c Release -r iossimulator-arm64 -p:EnableCodeSigning=false
+#
+# --fast-simulator runs this one build under the interpreter. _RunAotCompiler is forced
+# true for the iossimulator-arm64 RID specifically, so by default this step full-AOTs the
+# whole app — the single longest phase in the job, and on the net9 band far longer than on
+# net10. The device build below AOTs for real and is the coverage that ships, so what this
+# gives up is a duplicate AOT of the same managed code for a different RID. Restore,
+# link and native embedding are still exercised here either way.
+SIM_ARGS=()
+if [[ "$FAST_SIMULATOR" == "true" ]]; then
+  echo "(interpreter mode: simulator AOT skipped; the device build below still AOTs)"
+  SIM_ARGS+=(-p:MtouchInterpreter=all)
+fi
+# ${SIM_ARGS[@]+"..."} rather than a bare "${SIM_ARGS[@]}": macOS ships bash 3.2, where
+# expanding an empty array under `set -u` is an unbound-variable error.
+dotnet build App.csproj -c Release -r iossimulator-arm64 -p:EnableCodeSigning=false ${SIM_ARGS[@]+"${SIM_ARGS[@]}"}
 
 echo ""
 echo "── Device build (ios-arm64, unsigned) ──────────────────"
@@ -298,7 +334,7 @@ dotnet build App.csproj -c Release -r ios-arm64 -p:EnableCodeSigning=false -bl:"
 
 echo ""
 echo "── Inspecting device .app ──────────────────────────────"
-APP_BUNDLE="$(find bin/Release/net10.0-ios/ios-arm64 -maxdepth 1 -name '*.app' -type d | head -1)"
+APP_BUNDLE="$(find "bin/Release/$TFM/ios-arm64" -maxdepth 1 -name '*.app' -type d | head -1)"
 [[ -n "$APP_BUNDLE" ]] || { echo "ERROR: device .app not found"; exit 1; }
 echo "App bundle: $APP_BUNDLE"
 echo ""
@@ -342,6 +378,6 @@ if [[ $fail -ne 0 ]]; then
 fi
 
 echo ""
-echo "Consumer test PASSED: package restored from local feed, binding resolved"
+echo "Consumer test PASSED ($TFM): package restored from local feed, binding resolved"
 echo "transitively, simulator + device builds succeeded (both unsigned), native"
 echo "framework and resources embedded."
