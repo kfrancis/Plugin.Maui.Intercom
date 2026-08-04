@@ -122,6 +122,13 @@ Three Android-specific traps, all fixed and all easy to reintroduce:
 - `IIntercom` - Public interface defining all Intercom operations
 - `Intercom` - Static accessor class providing `Intercom.Default` singleton
 - `IntercomImplementation` - Platform-specific implementations
+- `IntercomOptions` - Both platforms' API keys and identity-verification secrets, plus
+  `LogLevel`/`AutoInitialize`. Platform-neutral on purpose (`OperatingSystem.IsAndroid()`,
+  not `#if`), so the tests compile it and exercise credential resolution through the internal
+  `PlatformOverride` seam. `UseIntercom` registers it as a singleton and, unless
+  `AutoInitialize` is off, initializes from the MAUI lifecycle — `OnApplicationCreate` on
+  Android, `FinishedLaunching` on iOS. Doing it inline in `UseIntercom` would run inside
+  `CreateMauiApp`, before the platform has finished its own startup.
 
 ### Packaging rules
 

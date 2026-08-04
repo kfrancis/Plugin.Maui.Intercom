@@ -1,7 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Plugin.Maui.Intercom;
 
 namespace MauiSample;
@@ -25,13 +22,13 @@ public partial class MainPage : ContentPage
     private static readonly IntercomThemeMode[] s_themeModes =
         [IntercomThemeMode.System, IntercomThemeMode.Light, IntercomThemeMode.Dark];
 
-    private readonly IConfiguration _configuration;
-    private bool _initialized;
+    private readonly IntercomOptions _options;
+    private bool _subscribed;
 
-    public MainPage(IConfiguration configuration)
+    public MainPage(IntercomOptions options)
     {
         InitializeComponent();
-        _configuration = configuration;
+        _options = options;
 
         SpacePicker.ItemsSource = s_spaces.Select(space => space.ToString()).ToList();
         ContentTypePicker.ItemsSource = s_contentTypes.ToList();
@@ -43,38 +40,27 @@ public partial class MainPage : ContentPage
     private void SetStatus(string message) =>
         MainThread.BeginInvokeOnMainThread(() => StatusLabel.Text = message);
 
-    private static string GetHmac(string key, string message)
-    {
-        var encoding = new UTF8Encoding();
-        using var hash = new HMACSHA256(encoding.GetBytes(key));
-        return Convert.ToHexStringLower(hash.ComputeHash(encoding.GetBytes(message)));
-    }
-
-    private (string apiKey, string appId, string secret) GetCredentials()
-    {
-#if ANDROID
-        var apiKey = _configuration.GetValue("Intercom:DroidApiKey", string.Empty);
-        var secret = _configuration.GetValue("Intercom:DroidSecret", string.Empty);
-#elif IOS
-        var apiKey = _configuration.GetValue("Intercom:AppleApiKey", string.Empty);
-        var secret = _configuration.GetValue("Intercom:AppleSecret", string.Empty);
-#else
-        var apiKey = string.Empty;
-        var secret = string.Empty;
-#endif
-        var appId = _configuration.GetValue("Intercom:AppId", string.Empty);
-        return (apiKey ?? string.Empty, appId ?? string.Empty, secret ?? string.Empty);
-    }
-
     private bool EnsureInitialized()
     {
-        if (_initialized)
+        if (_options.IsInitialized)
         {
+            Subscribe();
             return true;
         }
 
         SetStatus("Not initialized — tap Initialize first");
         return false;
+    }
+
+    private void Subscribe()
+    {
+        if (_subscribed)
+        {
+            return;
+        }
+
+        Intercom.UnreadConversationCountChanged += OnUnreadCountChanged;
+        _subscribed = true;
     }
 
     // Every handler funnels through here so a native failure shows up in the status label
@@ -116,20 +102,20 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var (apiKey, appId, _) = GetCredentials();
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(appId))
+            if (!_options.HasCredentials)
             {
-                SetStatus("Missing credentials — set Intercom:AppleApiKey/DroidApiKey and Intercom:AppId in appsettings.Development.json");
+                SetStatus("Missing credentials — set Intercom:AndroidApiKey/IosApiKey and Intercom:AppId in appsettings.Development.json");
                 return;
             }
 
-            // Before Initialize: the native SDK then logs why a later Messenger
-            // presentation fails instead of only showing its generic error screen.
-            Intercom.EnableLogging();
-            Intercom.Initialize(apiKey, appId);
-            Intercom.UnreadConversationCountChanged += OnUnreadCountChanged;
-            _initialized = true;
-            SetStatus($"Initialized (appId {appId})");
+            // UseIntercom already did this at startup when the credentials were present, and
+            // this call then reports false rather than initializing the SDK twice. It exists
+            // so the sample still works when AutoInitialize was turned off.
+            var initialized = Intercom.Initialize(_options);
+            Subscribe();
+            SetStatus(initialized
+                ? $"Initialized (appId {_options.AppId})"
+                : $"Already initialized at startup (appId {_options.AppId})");
         }
         catch (Exception ex)
         {
@@ -157,11 +143,11 @@ public partial class MainPage : ContentPage
     private void OnLoginIdentifiedClicked(object sender, EventArgs e) => _ = RunAsync("Login", async () =>
     {
         const string email = "test@test.com";
-        var (_, _, secret) = GetCredentials();
-        if (!string.IsNullOrEmpty(secret))
+        if (!string.IsNullOrEmpty(_options.Secret))
         {
-            // Only needed when identity verification is enabled for the workspace.
-            Intercom.SetUserHash(GetHmac(secret, email));
+            // Only needed when identity verification is enabled for the workspace, and only
+            // done on device because this is a sample — sign it on your server instead.
+            Intercom.SetUserHash(_options.ComputeUserHash(email));
         }
 
         var attributes = new IntercomUserAttributes

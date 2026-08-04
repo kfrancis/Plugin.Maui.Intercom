@@ -77,7 +77,12 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .UseIntercom()  // Add this line
+            .UseIntercom(options =>          // Add this
+            {
+                options.AppId = "abc12345";
+                options.AndroidApiKey = "android_sdk-...";
+                options.IosApiKey = "ios_sdk-...";
+            })
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -87,6 +92,12 @@ public static class MauiProgram
     }
 }
 ```
+
+Both platforms' keys go in, and the plugin picks the pair that matches the running platform —
+no `#if ANDROID` in your app. It then calls `Initialize` for you from the platform lifecycle
+(`Application.OnCreate` on Android, `didFinishLaunching` on iOS), which is the earliest point
+each native SDK accepts it. See [Initialization](#initialization) for credentials that are not
+known at startup.
 
 ### Android Configuration
 
@@ -153,16 +164,69 @@ classified in `eng/api-coverage.json`.
 
 ### Initialization
 
-Initialize Intercom early in your app's lifecycle (e.g., in `App.xaml.cs` or your main page):
+You can find your API keys and App ID in your
+[Intercom settings](https://app.intercom.com/a/apps/_/settings/android). The API key is
+platform-specific: an iOS key will not work on Android. So is the identity-verification
+secret.
+
+`UseIntercom(options => ...)` is the normal path — it initializes during startup, from the
+platform lifecycle, and registers `IntercomOptions` as a singleton you can inject.
+
+#### From configuration
+
+`UseIntercom` also takes an `IConfiguration`, keyed by property name — `AppId`,
+`AndroidApiKey`, `IosApiKey`, `AndroidSecret`, `IosSecret`, `LogLevel`, `AutoInitialize`. Blank
+values are treated as absent, so a checked-in `appsettings.json` full of placeholders will not
+overwrite anything set in code. Pass a configuration that is already populated —
+`builder.Configuration` is still empty at this point unless you added your sources to it first.
 
 ```csharp
-using Plugin.Maui.Intercom;
+var config = new ConfigurationBuilder().AddJsonFile(...).Build();
+builder.Configuration.AddConfiguration(config);
 
-Intercom.Default.Initialize("your-api-key", "your-app-id");
+builder.UseIntercom(config.GetSection("Intercom"), options =>
+{
+#if DEBUG
+    options.LogLevel = IntercomLogLevel.Verbose;   // applied just before Initialize
+#endif
+});
 ```
 
-You can find your API key and App ID in your [Intercom settings](https://app.intercom.com/a/apps/_/settings/android).
-The key is platform-specific: an iOS key will not work on Android.
+#### When the credentials arrive later
+
+Fetching keys from your backend, or choosing a workspace per tenant? Turn the startup hook off
+and initialize when you have them:
+
+```csharp
+builder.UseIntercom(options =>
+{
+    options.AutoInitialize = false;
+    options.AppId = ...;
+});
+
+// later, wherever the credentials turn up — idempotent, returns false if already initialized
+var options = services.GetRequiredService<IntercomOptions>();
+options.AndroidApiKey = fetched.AndroidKey;
+options.IosApiKey = fetched.IosKey;
+Intercom.Default.Initialize(options);
+```
+
+`Intercom.Default.Initialize(apiKey, appId)` is still there if you would rather do the whole
+thing by hand; `UseIntercom()` with no arguments registers `IIntercom` and initializes nothing.
+
+#### Identity verification
+
+`options.Secret` resolves the platform's secret, and `options.ComputeUserHash(identifier)`
+turns it into the HMAC-SHA256 digest `SetUserHash` wants:
+
+```csharp
+Intercom.Default.SetUserHash(options.ComputeUserHash("user@example.com"));
+```
+
+Anything in `IntercomOptions` ships inside the app binary and is extractable. That is fine for
+the API keys, which are client-side by design — it is not fine for the secret. Intercom's
+guidance is to compute the hash, or sign the JWT for `SetUserJwt`, on your server and hand the
+app the result. `AndroidSecret`/`IosSecret` are a development convenience.
 
 ### Logging users in
 
@@ -334,7 +398,8 @@ Intercom.Default.Logout();
 
 ### Dependency Injection
 
-`UseIntercom()` registers `IIntercom` as a singleton, so you can constructor-inject it:
+`UseIntercom()` registers `IIntercom` and `IntercomOptions` as singletons, so you can
+constructor-inject them:
 
 ```csharp
 public class MyViewModel
@@ -346,6 +411,9 @@ public class MyViewModel
     public void ShowMessenger() => _intercom.Present();
 }
 ```
+
+The registered `IIntercom` is the same object as `Intercom.Default`, so the two styles can be
+mixed.
 
 ## Architecture
 

@@ -28,6 +28,7 @@
     <Compile Include="..\..\Plugin.Maui.Intercom\IntercomException.cs" Link="Shared\IntercomException.cs" />
     <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.shared.cs" Link="Shared\Intercom.shared.cs" />
     <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.net.cs" Link="Shared\Intercom.net.cs" />
+    <Compile Include="..\..\Plugin.Maui.Intercom\IntercomOptions.cs" Link="Shared\IntercomOptions.cs" />
     <Compile Include="..\..\Plugin.Maui.Intercom\Models\*.cs" Link="Shared\Models\%(Filename)%(Extension)" />
   </ItemGroup>
 
@@ -37,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- IntercomOptions.Bind takes an IConfiguration; the tests feed it an in-memory one.
+         The plugin itself gets the abstraction from MAUI. -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageReference Include="TUnit" Version="1.63.0" />
   </ItemGroup>
 
