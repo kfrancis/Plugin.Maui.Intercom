@@ -6,7 +6,7 @@
 # a temporary NuGet.config. No ProjectReference, no linked sources, no
 # repository-relative native paths. Proves that:
 #   - the iOS binding package resolves transitively,
-#   - the app compiles for the iOS simulator,
+#   - the app compiles, links and AOTs for the iOS simulator (unsigned),
 #   - the app builds (unsigned) for ios-arm64 devices,
 #   - the native Intercom framework + resources land in the .app.
 #
@@ -276,10 +276,18 @@ print("OK: Plugin.Maui.Intercom", version, "resolved; iOS binding resolved TRANS
 PYEOF
 
 echo ""
-echo "── Simulator build (iossimulator-arm64) ────────────────"
+echo "── Simulator build (iossimulator-arm64, unsigned) ──────"
 # Implicit restore picks up $APP_ROOT/NuGet.config via directory hierarchy and
 # restores for exactly this RuntimeIdentifier.
-dotnet build App.csproj -c Release -r iossimulator-arm64
+#
+# Unsigned, like the device build. This test asserts that the package restores,
+# links and AOTs — nothing here ever launches the .app, so the ad-hoc codesign
+# the iOS SDK would otherwise run at the end of the simulator build is not part
+# of what is being proven. It is also the one step in this script that depends
+# on the runner's /usr/bin/codesign rather than on the packages under test: it
+# failed on macos-26/Xcode 26.6 with "App.app: invalid or unsupported format for
+# signature" on a build whose only change was managed code in the plugin.
+dotnet build App.csproj -c Release -r iossimulator-arm64 -p:EnableCodeSigning=false
 
 echo ""
 echo "── Device build (ios-arm64, unsigned) ──────────────────"
@@ -335,5 +343,5 @@ fi
 
 echo ""
 echo "Consumer test PASSED: package restored from local feed, binding resolved"
-echo "transitively, simulator + device builds succeeded, native framework and"
-echo "resources embedded."
+echo "transitively, simulator + device builds succeeded (both unsigned), native"
+echo "framework and resources embedded."
