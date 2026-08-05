@@ -50,6 +50,28 @@
       To learn more, see: https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming
     -->
     <IsTrimmable>true</IsTrimmable>
+
+    <!-- AndroidX Navigation is pinned per band, because the family's assembly names are
+         not stable across it. 2.9.x split each package into a facade plus an `.Android`
+         implementation, so the assembly MAUI 9 was compiled against —
+         Xamarin.AndroidX.Navigation.Runtime, Version=1.0.0.0 — no longer exists under
+         2.9.2.1. Forcing 2.9.2.1 onto a net9 app therefore breaks Microsoft.Maui.dll
+         itself, not just this binding:
+
+             error : Failed to load method 0x60011cd from '…/linked/Microsoft.Maui.dll'
+               due to Could not load file or assembly
+               'Xamarin.AndroidX.Navigation.Runtime, Version=1.0.0.0'
+
+         Depending on where the build notices the missing assembly, that surfaces as an
+         AOT failure or as a NullReferenceException inside GenerateJavaStubs — Cecil
+         returns null for the unresolvable type and
+         CustomAttributeProviderRocks.GetCustomAttributes dereferences it.
+
+         2.8.9.1 is what MAUI 9 asks for, so the net9 band takes it and the long-standing
+         NU1608 on this family disappears there as a side effect. MAUI 10 is built against
+         2.9.x, so the net10 band keeps 2.9.2.1. -->
+    <IntercomAndroidXNavigationVersion Condition="$(TargetFramework.StartsWith('net9.0'))">2.8.9.1</IntercomAndroidXNavigationVersion>
+    <IntercomAndroidXNavigationVersion Condition="'$(IntercomAndroidXNavigationVersion)' == ''">2.9.2.1</IntercomAndroidXNavigationVersion>
     <!--
       NOTE: you can simply add .aar or .jar files in this directory to be included in the project.
       To learn more, see: https://learn.microsoft.com/dotnet/maui/migration/android-binding-projects
@@ -242,16 +264,29 @@
       <Version>1.6.1.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Navigation.Compose">
-      <Version>2.9.2.1</Version>
+      <Version>$(IntercomAndroidXNavigationVersion)</Version>
+    </PackageReference>
+    <!-- Not used by this binding directly — pinned to keep the Navigation family on one
+         version. MAUI asks for Navigation.Fragment 2.8.9.1 while the pins here raise
+         Common/Runtime/UI to 2.9.2.1, and NuGet resolves that split rather than failing
+         (the long-standing NU1608 on this graph). The net10 band tolerated it; net9 does
+         not — Fragment 2.8.9.1 cannot bind against the 2.9.2.1 assemblies, and the app
+         build dies with 'Could not load file or assembly
+         Xamarin.AndroidX.Navigation.Common, Version=1.0.0.0'. That surfaces as an AOT
+         failure or, earlier in the build, as a NullReferenceException inside
+         GenerateJavaStubs (Cecil returns null for the unresolvable type, and
+         CustomAttributeProviderRocks.GetCustomAttributes dereferences it). -->
+    <PackageReference Include="Xamarin.AndroidX.Navigation.Fragment">
+      <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Navigation.Runtime">
-      <Version>2.9.2.1</Version>
+      <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Navigation.Runtime.Ktx">
-      <Version>2.9.2.1</Version>
+      <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Navigation.UI.Ktx">
-      <Version>2.9.2.1</Version>
+      <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Paging.Common">
       <Version>3.3.6.1</Version>

@@ -92,6 +92,15 @@ Four things follow, all of which have bitten:
 - **The iOS binding cannot be built off macOS**, so `build.ps1` narrows the plugin and
   sample to their Android TFMs (via the overridable TFM properties) instead of pointing
   restore at a published iOS binding: no published version carries a net9.0-ios asset.
+- **AndroidX package versions are not automatically band-portable.** Navigation is pinned
+  per band because 2.9.x split each package into a facade plus an `.Android` implementation,
+  so the assembly MAUI 9 was compiled against (`Xamarin.AndroidX.Navigation.Runtime,
+  Version=1.0.0.0`) does not exist under 2.9.2.1. Forcing 2.9.2.1 onto a net9 app breaks
+  `Microsoft.Maui.dll` itself, surfacing as an AOT failure or — earlier in the build — as a
+  `NullReferenceException` in `GenerateJavaStubs` (Cecil returns null for the unresolvable
+  type and `CustomAttributeProviderRocks.GetCustomAttributes` dereferences it). The net9
+  band takes 2.8.9.1, which is what MAUI 9 asks for. Any future AndroidX bump needs the
+  same question asked: does the net9 MAUI still bind against these assembly names?
 - **`CompressBindingResourcePackage` has to be forced to `true`.** Its default, `auto`,
   compresses only when the xcframework has symlinks — Intercom's has none — and the two
   bands then disagreed: net10 packed a `.resources.zip`, net9 a loose `.resources/` tree
