@@ -64,7 +64,16 @@
        build of a multi-targeted project and set in every inner build. Restore evaluates
        per TFM, so the condition is live where it matters. -->
   <PropertyGroup>
-    <IntercomMauiVersionNet9>9.0.120</IntercomMauiVersionNet9>
+    <!-- The floor, not a preference. A PackageReference version is a minimum, so whatever
+         is set here becomes the lowest Microsoft.Maui.Controls a net9 consumer is allowed
+         to use — and picking "latest 9.0.x" silently forced every consumer to upgrade.
+         The plugin only needs MauiAppBuilder, ConfigureLifecycleEvents and MainThread,
+         all present in 9.0.0, so the floor sits there and consumers pick their own 9.0.x.
+         Note this has nothing to do with Xcode: MAUI 9's iOS dependency group is
+         net9.0-ios18.0 at every 9.0.x, so the MAUI version never pulls the platform
+         version — and therefore the required Xcode — up. That is decided by the installed
+         iOS workload pack instead. -->
+    <IntercomMauiVersionNet9>9.0.0</IntercomMauiVersionNet9>
     <MauiVersion Condition="$(TargetFramework.StartsWith('net9.0'))">$(IntercomMauiVersionNet9)</MauiVersion>
   </PropertyGroup>
 

@@ -41,8 +41,11 @@ done
 # app would ask for Microsoft.Maui.Controls 10.x — a package with no net9.0-ios lib. The
 # consumer app is generated outside the repo, so Directory.Build.props does not reach it;
 # pin the band's MAUI version here and keep it in step with $(IntercomMauiVersionNet9).
+# The net9 value is the FLOOR the package declares, not the latest 9.0.x, so this proves
+# the minimum a consumer is allowed to use actually builds. Keep it in step with
+# $(IntercomMauiVersionNet9).
 case "$TFM" in
-  net9.0-ios)  MAUI_VERSION="9.0.120" ;;
+  net9.0-ios)  MAUI_VERSION="9.0.0" ;;
   net10.0-ios) MAUI_VERSION="\$(MauiVersion)" ;;
   *) echo "ERROR: unsupported --tfm '$TFM' (expected net9.0-ios or net10.0-ios)" >&2; exit 2 ;;
 esac
