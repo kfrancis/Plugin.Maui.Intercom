@@ -68,9 +68,15 @@ members are silently never classified.
   called member to the `REQUIRED` list in `eng/dump-ios-binding-api.sh`; CI's `ios-binding`
   job runs `--check` and fails with a clear message instead of a compile error deep in
   `Intercom.macios.cs`.
-- ObjC enum members lose the enum-name prefix in the generated C# (`ICMThemeOverrideLight`
-  → `ICMThemeOverride.Light`). Do not map them by casting an integer — a named member fails
-  at compile time if the generator disagrees, a cast fails silently at runtime.
+- ObjC enum cases are stripped by `StructsAndEnumsEmitter.ResolveCasePrefix`: a case set
+  that repeats the enum's own type name at a PascalCase word boundary loses it
+  (`ICMThemeOverrideLight` → `ICMThemeOverride.Light`), otherwise a case set that all
+  carries the module's acronym tag loses that, otherwise the case is only PascalCased
+  (`home` → `Home`). Both rules are all-or-nothing across the case set. Do not map cases by
+  casting an integer — a named member fails at compile time if the generator disagrees, a
+  cast fails silently at runtime.
+- Type names are *not* rewritten on this binding, even where the header carries
+  `NS_SWIFT_NAME` — see the binding csproj for why. Re-verify that on a generator upgrade.
 - `eng/api-coverage.sh` parses the umbrella headers as text. Trailing macros
   (`NS_REFINED_FOR_SWIFT`, `__attribute((deprecated("…")))`) are stripped before the selector
   is read; a deprecation message quoting a *replacement* selector would otherwise be

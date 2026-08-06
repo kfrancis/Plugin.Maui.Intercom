@@ -36,6 +36,34 @@
     <SwiftFrameworkType>ObjC</SwiftFrameworkType>
     <IsBindingProject>true</IsBindingProject>
 
+    <!-- One consequence of the pure-ObjC lane is worth writing down, because the
+         0.19.0 release notes lead with it as source-breaking and it looks like it
+         should apply here.
+
+         0.19.0 renames emitted ObjC types to the name Swift imports them under, so
+         a header carrying NS_SWIFT_NAME emits under that name instead of the ObjC
+         spelling. Intercom's Help Center headers all carry one — ICMHelpCenterArticle
+         is HelpCenterArticle to Swift, ICMHelpCenterCollection is HelpCenterCollection
+         — and the latter would collide head-on with this plugin's own
+         Plugin.Maui.Intercom.HelpCenterCollection model.
+
+         It does not happen. ObjCSwiftImportNameRewriter is driven by the rawObjCName ->
+         swiftImportName map that SwiftABIParser harvests from the Swift ABI, and the two
+         pure-ObjC ObjCPipeline.Run call sites in BindingsGeneratorCommand pass nothing
+         for it (only the mixed path, after GenerateBindings, supplies one). An empty map
+         makes the pass a no-op, so every type keeps its raw ObjC spelling and
+         Intercom.macios.cs keeps naming ICMUserAttributes, ICMCompany and
+         ICMHelpCenterCollection.
+
+         Enum cases are a separate mechanism (StructsAndEnumsEmitter.ResolveCasePrefix)
+         and DO strip here: a case set that repeats the enum's own type name at a
+         PascalCase word boundary loses it, which is why ICMThemeOverrideLight is
+         ICMThemeOverride.Light. Space's cases (home, helpCenter, …) carry neither the
+         type name nor the module tag, so they only get PascalCased. -->
+    <!-- SwiftBridgeRequired is deliberately not set: SWIFTBIND052 is gated on a SwiftUI
+         bridge module having been built, and the pure-ObjC lane builds none. -->
+
+
     <!-- Ship the native payload as Intercom.iOS.Binding.resources.zip on every band.
 
          The default is 'auto' — compress only when the xcframework contains symlinks —

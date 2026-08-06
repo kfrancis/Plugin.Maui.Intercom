@@ -101,6 +101,6 @@
     <VcdiffCoreVersion>0.1.1</VcdiffCoreVersion>
     <!-- swift-dotnet-bindings MSBuild project SDK version is pinned in global.json (msbuild-sdks).
          This property mirrors it for scripts/CI that need the value without JSON parsing. -->
-    <SwiftBindingsSdkVersion>0.18.1</SwiftBindingsSdkVersion>
+    <SwiftBindingsSdkVersion>0.19.0</SwiftBindingsSdkVersion>
   </PropertyGroup>
 </Project>
