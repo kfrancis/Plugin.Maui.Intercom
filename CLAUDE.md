@@ -55,9 +55,10 @@ Three things follow from this and are easy to get wrong:
 - **`ApiCoverageMapTests` checks the other direction** — every `covered` entry must name a
   member that really exists. Without it the gate is satisfiable by writing a plausible name
   into the JSON.
-- **developers.intercom.com is not ground truth.** It documents an iOS `setThemeOverride:` the
-  shipped headers do not declare, and omits `setUserJwt`, `setAuthTokens`,
-  `IntercomContent.Ticket`, `reset()` and the whole `IntercomPushClient`. Read the artifacts.
+- **developers.intercom.com is not ground truth.** It omits `setUserJwt`, `setAuthTokens`,
+  `reset()` and the whole `IntercomPushClient`, and it documented an iOS `setThemeOverride:`
+  and `IntercomContent.Ticket` for several releases before the shipped headers declared
+  either (both arrived in the 19.x line). Read the artifacts.
 
 ### The TFM matrix is one list, and net9 is not free
 
@@ -163,17 +164,20 @@ The iOS binding uses the `SwiftBindings.Sdk` MSBuild project SDK from
 
 ### Android binding
 
-Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (17.4.1) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
+Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (18.7.0) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
 
 Three Android-specific traps, all fixed and all easy to reintroduce:
 
 - **`RootNamespace` must not start with `Intercom`.** The default (project name `Intercom.Android.Binding`) put the generated `Resource` class in a namespace that declared `Intercom` in the *global* namespace of every consuming app, so `Intercom.Default` failed to resolve with CS0234. Set to `MauiIntercomAndroid`. `src/sample/NamespaceCollisionRegression.cs` guards it.
 - **The binding ships `buildTransitive/*.targets`** that strips the duplicate Compose `runtime-annotation-jvm.jar`; without it every consumer fails to dex. The removal must hook `_DetermineJavaLibrariesToCompile` — `BeforeTargets="_CompileDex"` is too late.
-- **Android floor is API 23**, dictated by AndroidX Emoji2 1.6.0 in the resolved graph, not by MAUI.
+- **Android floor is API 23**, dictated by Intercom Android 18.0.0 itself and by AndroidX
+  Emoji2 1.6.0 in the resolved graph, not by MAUI. Intercom 18 also requires the Gradle
+  module to build at `compileSdk 36`; below that its AAR metadata fails the compatibility
+  check outright.
 
 ### Optional Ably add-on
 
-`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`**, not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
+`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`** (1.7.2, matching what Intercom 18.7.0's POM asks of `ably-android`), not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
 
 ### Platform-Specific Code Pattern
 

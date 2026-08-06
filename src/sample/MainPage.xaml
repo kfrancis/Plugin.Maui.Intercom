@@ -134,6 +134,16 @@
                 <Label Text="In-app messages visible" VerticalOptions="Center" />
             </HorizontalStackLayout>
 
+            <HorizontalStackLayout Spacing="10">
+                <Switch x:Name="SuppressCarouselsSwitch" Toggled="OnSuppressProactiveContentToggled" />
+                <Label Text="Suppress carousels" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Spacing="10">
+                <Switch x:Name="SuppressSurveysSwitch" Toggled="OnSuppressProactiveContentToggled" />
+                <Label Text="Suppress surveys" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
             <Slider
                 x:Name="BottomPaddingSlider"
                 Maximum="120"
@@ -143,7 +153,7 @@
             <Picker
                 x:Name="ThemePicker"
                 SelectedIndex="0"
-                Title="Theme mode (Android only)" />
+                Title="Theme mode" />
 
             <Button
                 Clicked="OnSetThemeClicked"

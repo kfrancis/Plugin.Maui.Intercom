@@ -5,10 +5,14 @@ namespace Plugin.Maui.Intercom;
 /// </summary>
 /// <remarks>
 ///     <para>
-///         Android only. The Intercom iOS SDK 18.7.2 has no theme override on its public
-///         ObjC surface — the documentation site describes <c>setThemeOverride:</c> and
-///         <c>ICMThemeOverride*</c>, but neither appears in the shipped umbrella headers,
-///         so there is nothing to bind. On iOS the Messenger follows the workspace setting.
+///         Maps to <c>ThemeMode</c> on Android and to <c>ICMThemeOverride</c> on iOS, where
+///         it landed in SDK 19.x — earlier versions had no theme override on their public
+///         ObjC surface despite the documentation site describing one.
+///     </para>
+///     <para>
+///         There is deliberately no member for iOS's <c>ICMThemeOverrideNone</c>, which
+///         clears the override and hands the decision back to the workspace: Android has no
+///         counterpart, so it would be a one-sided member on a three-value enum.
 ///     </para>
 /// </remarks>
 public enum IntercomThemeMode

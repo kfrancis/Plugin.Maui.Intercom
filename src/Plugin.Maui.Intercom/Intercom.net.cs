@@ -60,6 +60,8 @@ partial class IntercomImplementation : IIntercom
 
     public void SetInAppMessagesVisible(bool visible) => throw new PlatformNotSupportedException(Unsupported);
 
+    public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types) => throw new PlatformNotSupportedException(Unsupported);
+
     public void SetBottomPaddingDp(double bottomPaddingDp) => throw new PlatformNotSupportedException(Unsupported);
 
     public void SetThemeMode(IntercomThemeMode mode) => throw new PlatformNotSupportedException(Unsupported);

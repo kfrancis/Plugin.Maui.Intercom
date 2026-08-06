@@ -1,6 +1,6 @@
 # Plugin.Maui.Intercom.Android.Binding
 
-This package contains Android native bindings for the Intercom SDK (version 17.4.1).
+This package contains Android native bindings for the Intercom SDK (version 18.7.0).
 
 **This is a dependency package for Plugin.Maui.Intercom and should not be referenced directly.**
 
@@ -12,9 +12,9 @@ dotnet add package Plugin.Maui.Intercom
 
 ## Included Components
 
-- Intercom SDK Base (17.4.1)
-- Intercom SDK UI (17.4.1)
-- Intercom SDK Light Compressor (17.4.1)
+- Intercom SDK Base (18.7.0)
+- Intercom SDK UI (18.7.0)
+- Intercom SDK Light Compressor (18.7.0)
 - Coil image loading library (2.7.0)
 - Various AndroidX and Compose dependencies
 

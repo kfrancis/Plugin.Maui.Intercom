@@ -54,8 +54,8 @@ It is a separate, opt-in package because Intercom's POM asks for `io.ably:ably-a
 
 | Platform | Intercom SDK Version |
 |----------|---------------------|
-| Android  | 17.4.1              |
-| iOS      | 18.7.2              |
+| Android  | 18.7.0              |
+| iOS      | 19.7.2              |
 
 > **Breaking change (0.9.0):** the whole `IIntercom` surface was replaced. The previous API reached about a third of the native Intercom SDKs; 0.9 reaches all of it, and `eng/api-coverage.sh` fails the build if that stops being true. Every member was renamed or resignatured — see [MIGRATION.md](MIGRATION.md). Still 0.x deliberately: the surface has not been exercised on real devices long enough to promise compatibility.
 
@@ -140,13 +140,14 @@ error code. Everything else is synchronous and dispatches to the UI thread inter
 | `FetchLoggedInUserAttributes()` | ✅ | ✅ |
 | `LogEvent(name, metadata)` | ✅ | ✅ |
 | `Present(space)` | ✅ | ✅ |
-| `PresentContent(content)` | ✅ | no `Ticket` |
+| `PresentContent(content)` | ✅ | ✅ |
 | `PresentMessageComposer(initialMessage)` | ✅ | ✅ |
 | `HideIntercom()` | ✅ | ✅ |
 | `SetLauncherVisible(visible)` | ✅ | ✅ |
 | `SetInAppMessagesVisible(visible)` | ✅ | ✅ |
+| `SuppressProactiveContent(types)` | ✅ | ✅ |
 | `SetBottomPaddingDp(dp)` | ✅ | ✅ |
-| `SetThemeMode(mode)` | ✅ | — |
+| `SetThemeMode(mode)` | ✅ | session only |
 | `UnreadConversationCount` | ✅ | ✅ |
 | `UnreadConversationCountChanged` | ✅ | ✅ |
 | `FetchHelpCenterCollectionsAsync()` | ✅ | ✅ |
@@ -157,8 +158,9 @@ error code. Everything else is synchronous and dispatches to the UI thread inter
 | `HandlePush(payload)` | ✅ | ✅ |
 
 Members marked `—` throw `PlatformNotSupportedException` with the reason in the message.
-`ChangeWorkspace` and `SetThemeMode` have no iOS counterpart; the Intercom iOS SDK's public
-ObjC surface declares no theme override, despite what the documentation site says.
+`ChangeWorkspace` is the only one left: the Intercom iOS SDK has no `changeWorkspace`
+equivalent. `SetThemeMode` works on both platforms as of Intercom iOS 19.x, but iOS resets
+the override when the app restarts while Android's persists.
 
 That table is enforced, not aspirational: `eng/api-coverage.sh` extracts the public API of the
 pinned Android AARs and iOS xcframework and fails the build if a native symbol is not
@@ -312,7 +314,7 @@ Intercom.Default.PresentContent(new IntercomContent.Carousel("carousel-id"));
 Intercom.Default.PresentContent(new IntercomContent.Survey("survey-id"));
 Intercom.Default.PresentContent(new IntercomContent.Conversation("conversation-id"));
 Intercom.Default.PresentContent(new IntercomContent.HelpCenterCollections(["collection-id"]));
-Intercom.Default.PresentContent(new IntercomContent.Ticket("ticket-id"));  // Android only
+Intercom.Default.PresentContent(new IntercomContent.Ticket("ticket-id"));
 
 Intercom.Default.HideIntercom();
 ```
@@ -405,7 +407,12 @@ if (Intercom.Default.IsIntercomPush(payload))
 Intercom.Default.SetLauncherVisible(true);        // Show/hide the launcher
 Intercom.Default.SetInAppMessagesVisible(false);  // Suppress in-app messages
 Intercom.Default.SetBottomPaddingDp(24);          // Device-independent pixels on both platforms
-Intercom.Default.SetThemeMode(IntercomThemeMode.Dark);  // Android only
+Intercom.Default.SetThemeMode(IntercomThemeMode.Dark);  // iOS resets this on app restart
+
+// Carousels and surveys, suppressed independently of in-app messages. Each call replaces
+// the suppressed set, so pass an empty list to un-suppress everything.
+Intercom.Default.SuppressProactiveContent([IntercomProactiveContentType.Carousel]);
+Intercom.Default.SuppressProactiveContent([]);
 ```
 
 `SetBottomPaddingDp` takes dp on both platforms. The native APIs disagree — Android's
@@ -451,7 +458,7 @@ The main package declares the binding packages as platform-conditional dependenc
 
 ### How the iOS binding works
 
-- The exact Intercom `Intercom.xcframework` (18.7.2) is **checked into the repository** at `src/macios/Intercom.iOS.Binding/` — ordinary builds never download anything. The SHA-256 of the official release archive is recorded in `eng/intercom-ios.sha256`.
+- The exact Intercom `Intercom.xcframework` (19.7.2) is **checked into the repository** at `src/macios/Intercom.iOS.Binding/` — ordinary builds never download anything. The SHA-256 of the official release archive is recorded in `eng/intercom-ios.sha256`.
 - `src/macios/Intercom.iOS.Binding` uses the `SwiftBindings.Sdk` MSBuild project SDK (version pinned in `global.json` under `msbuild-sdks`). Intercom is a mixed Swift/Objective-C framework whose complete public API is exported through its ObjC umbrella header, so the binding uses the generator's pure-ObjC pipeline (`SwiftFrameworkType=ObjC` + `IsBindingProject=true`): at build time on macOS it parses the framework headers with clang, generates the bgen `ApiDefinition`, and compiles a single binding assembly (namespace `IntercomBinding`).
 - The whole surface is generated — there is no hand-written supplement. Up to SwiftBindings.Sdk 0.17.0 the generator's `-fmodules` clang retry made clang build Intercom as a module, which collapsed each `#import <Intercom/SiblingHeader.h>` into a module import and silently dropped every declaration behind it (`ICMUserAttributes`, `IntercomContent`, the help-center types, the `Space`/`ContentType` NS_ENUMs). Two supplement files covered that gap; [SwiftBindings 0.18.0](https://github.com/justinwojo/swift-dotnet-bindings/releases/tag/sdk-v0.18.0) passes `-fmodule-name` on the retry so those headers parse textually, and the supplements were removed.
 - The package uses the standard iOS binding layout, once per band (`lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`): the managed assembly plus `Intercom.iOS.Binding.resources.zip` beside it containing the full `Intercom.xcframework` (device + simulator slices, resource bundles, `PrivacyInfo.xcprivacy`). The .NET iOS SDK unpacks it in consuming apps and applies the `NativeReference` automatically — embedding, linking and signing included.
@@ -508,9 +515,9 @@ Bash. `eng/update-intercom.sh` runs it automatically after bumping the iOS SDK s
 lands in the same PR as the version bump.
 
 Note that the published docs at developers.intercom.com are *not* usable as the source of
-truth: they describe an iOS `setThemeOverride:` that the shipped headers do not declare, and
-omit `setUserJwt`, `setAuthTokens`, `IntercomContent.Ticket` and the whole `IntercomPushClient`.
-The vendored artifacts are.
+truth: they omit `setUserJwt`, `setAuthTokens` and the whole `IntercomPushClient`, and they
+described an iOS `setThemeOverride:` for several releases before the shipped headers actually
+declared one. The vendored artifacts are.
 
 ### Tests
 
@@ -561,7 +568,7 @@ To update the swift-dotnet-bindings generator, change the `SwiftBindings.Sdk` ve
 
 ### Android: Compose Version Mismatch
 
-If you encounter runtime crashes related to `NoSuchMethodError` in Compose classes, ensure you're using Intercom SDK 17.4.1 or later, which is compatible with AndroidX Compose BOM 2025.11.01.
+If you encounter runtime crashes related to `NoSuchMethodError` in Compose classes, ensure you're using Intercom SDK 18.7.0 or later, which is compatible with AndroidX Compose BOM 2026.06.01.
 
 ### iOS: Build on Windows
 

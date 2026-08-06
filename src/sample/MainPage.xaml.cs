@@ -17,7 +17,7 @@ public partial class MainPage : ContentPage
         [IntercomSpace.Home, IntercomSpace.Messages, IntercomSpace.HelpCenter, IntercomSpace.Tickets];
 
     private static readonly string[] s_contentTypes =
-        ["Article", "Carousel", "Survey", "Conversation", "Ticket (Android only)", "Help Center collections"];
+        ["Article", "Carousel", "Survey", "Conversation", "Ticket", "Help Center collections"];
 
     private static readonly IntercomThemeMode[] s_themeModes =
         [IntercomThemeMode.System, IntercomThemeMode.Light, IntercomThemeMode.Dark];
@@ -264,6 +264,27 @@ public partial class MainPage : ContentPage
     {
         Intercom.SetInAppMessagesVisible(e.Value);
         SetStatus($"In-app messages visible: {e.Value}");
+    });
+
+    // One handler for both switches: suppressProactiveContent replaces the suppressed set
+    // rather than adding to it, so each toggle has to send the whole set.
+    private void OnSuppressProactiveContentToggled(object sender, ToggledEventArgs e) => Run("Suppress proactive content", () =>
+    {
+        List<IntercomProactiveContentType> types = [];
+        if (SuppressCarouselsSwitch.IsToggled)
+        {
+            types.Add(IntercomProactiveContentType.Carousel);
+        }
+
+        if (SuppressSurveysSwitch.IsToggled)
+        {
+            types.Add(IntercomProactiveContentType.Survey);
+        }
+
+        Intercom.SuppressProactiveContent(types);
+        SetStatus(types.Count == 0
+            ? "Proactive content: nothing suppressed"
+            : $"Proactive content suppressed: {string.Join(", ", types)}");
     });
 
     private void OnBottomPaddingChanged(object sender, ValueChangedEventArgs e) => Run("Set bottom padding", () =>

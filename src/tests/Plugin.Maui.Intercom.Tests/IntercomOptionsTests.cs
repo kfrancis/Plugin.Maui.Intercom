@@ -323,6 +323,8 @@ public sealed class IntercomOptionsTests
 
         public void SetInAppMessagesVisible(bool visible) => throw new NotSupportedException();
 
+        public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types) => throw new NotSupportedException();
+
         public void SetBottomPaddingDp(double bottomPaddingDp) => throw new NotSupportedException();
 
         public void SetThemeMode(IntercomThemeMode mode) => throw new NotSupportedException();

@@ -190,6 +190,12 @@ partial class IntercomImplementation : IIntercom
 
     public void SetInAppMessagesVisible(bool visible) => IntercomSdk.SetInAppMessagesVisible(visible);
 
+    public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types)
+    {
+        ArgumentNullException.ThrowIfNull(types);
+        IntercomSdk.SuppressProactiveContent([.. types.Select(type => (int)type)]);
+    }
+
     public void SetBottomPaddingDp(double bottomPaddingDp)
     {
         // Android's setBottomPadding takes raw pixels while iOS's takes points. Scaling by

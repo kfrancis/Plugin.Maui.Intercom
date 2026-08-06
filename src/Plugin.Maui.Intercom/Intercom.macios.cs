@@ -177,9 +177,8 @@ partial class IntercomImplementation : IIntercom
             IntercomContent.Carousel carousel => NativeContent.CarouselWithId(carousel.Id),
             IntercomContent.Survey survey => NativeContent.SurveyWithId(survey.Id),
             IntercomContent.Conversation conversation => NativeContent.ConversationWithId(conversation.Id),
+            IntercomContent.Ticket ticket => NativeContent.TicketWithId(ticket.Id),
             IntercomContent.HelpCenterCollections collections => NativeContent.HelpCenterCollectionsWithIds([.. collections.Ids]),
-            IntercomContent.Ticket => throw new PlatformNotSupportedException(
-                "Intercom for iOS has no ticket content type. Use Present(IntercomSpace.Tickets), which both platforms support."),
             _ => throw new ArgumentException($"Unknown Intercom content type: {content.GetType().Name}", nameof(content))
         };
 
@@ -199,15 +198,37 @@ partial class IntercomImplementation : IIntercom
     public void SetInAppMessagesVisible(bool visible) =>
         MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SetInAppMessagesVisible(visible));
 
+    public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types)
+    {
+        ArgumentNullException.ThrowIfNull(types);
+
+        // suppressProactiveContent: takes NSArray<NSNumber *> of IntercomProactiveContentType
+        // raw values rather than a typed enum array, so the ordinal is the wire format on this
+        // side too — see IntercomProactiveContentType for why the two enums line up.
+        NSNumber[] native = [.. types.Select(type => NSNumber.FromInt64((long)type))];
+        MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SuppressProactiveContent(native));
+    }
+
     // iOS points and dp are the same unit, so this passes straight through; Android is the
     // side that has to scale.
     public void SetBottomPaddingDp(double bottomPaddingDp) =>
         MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SetBottomPadding((nfloat)bottomPaddingDp));
 
-    public void SetThemeMode(IntercomThemeMode mode) =>
-        throw new PlatformNotSupportedException(
-            "The pinned Intercom iOS SDK exposes no theme override on its public ObjC surface. " +
-            "The documentation site describes setThemeOverride:, but the shipped umbrella headers do not declare it.");
+    public void SetThemeMode(IntercomThemeMode mode)
+    {
+        // ICMThemeOverride is not IntercomThemeMode's shape: it leads with a `None` member
+        // that clears the override and restores the workspace setting, which this API has no
+        // way to express, so the ordinals cannot cross unmapped.
+        var native = mode switch
+        {
+            IntercomThemeMode.System => ICMThemeOverride.System,
+            IntercomThemeMode.Light => ICMThemeOverride.Light,
+            IntercomThemeMode.Dark => ICMThemeOverride.Dark,
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown Intercom theme mode.")
+        };
+
+        MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SetThemeOverride(native));
+    }
 
     // ── Unread conversations ────────────────────────────────────────────────
 
@@ -342,17 +363,12 @@ partial class IntercomImplementation : IIntercom
 
         var deviceToken = ParseHexToken(token);
         var completion = new Completion(cancellationToken);
-        MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SetDeviceToken(deviceToken, error =>
-        {
-            if (error is null)
-            {
-                completion.Succeed();
-            }
-            else
-            {
-                completion.Fail(error);
-            }
-        }));
+        // setDeviceToken:success:failure:, not the two-argument setDeviceToken:failure: the
+        // SDK deprecated in 19.2.0. The old form only called back on failure, so success was
+        // inferred from a null error — which never arrived at all when registration silently
+        // did nothing, leaving the task pending forever.
+        MainThread.BeginInvokeOnMainThread(() =>
+            NativeIntercom.SetDeviceToken(deviceToken, completion.Succeed, completion.Fail));
         return completion.Task;
     }
 

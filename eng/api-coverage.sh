@@ -86,6 +86,7 @@ CLASS_GLOBS=(
   'io/intercom/android/sdk/Intercom.class'
   'io/intercom/android/sdk/Intercom$Visibility.class'
   'io/intercom/android/sdk/Intercom$LogLevel.class'
+  'io/intercom/android/sdk/Intercom$ContentType.class'
   'io/intercom/android/sdk/IntercomSpace.class'
   'io/intercom/android/sdk/IntercomContent.class'
   'io/intercom/android/sdk/IntercomContent$*.class'
@@ -323,6 +324,16 @@ def parse_ios(dirpath):
                 kind = decl[0]
                 body = decl[1:].strip()
                 body = re.sub(r"^\([^)]*\)", "", body).strip()  # drop return type
+                # Trailing macros are not part of the selector, and their payloads
+                # contain colons: a deprecation attribute quotes the replacement
+                # selector, which otherwise gets appended to the real one —
+                #   +[Intercom setDeviceToken:failure:] __attribute((deprecated(
+                #       "… Use '+[Intercom setDeviceToken:success:failure:]' …")))
+                # parsed as setDeviceToken:failure:setDeviceToken:success:failure:.
+                # Truncating at the first ALL-CAPS macro or __attribute is safe:
+                # parameter types are parenthesised and none of them match.
+                body = re.split(r"\b(?:__attribute\w*|__deprecated\w*|NS_[A-Z][A-Z_]+"
+                                r"|API_[A-Z][A-Z_]+|[A-Z][A-Z0-9]*_[A-Z0-9_]+)\b", body)[0]
                 # A selector is either `name` or `partA:partB:` — parameter names,
                 # types and attributes between the parts are irrelevant to identity.
                 parts = re.findall(r"(\w+)\s*:", body)
