@@ -43,7 +43,7 @@ The platform binding packages (`Plugin.Maui.Intercom.iOS.Binding`, `Plugin.Maui.
 
 | Platform | Intercom SDK Version |
 |----------|---------------------|
-| Android  | 18.7.0              |
+| Android  | 18.8.0              |
 | iOS      | 19.7.2              |
 
 ### Optional: Android realtime (`Plugin.Maui.Intercom.Android.Ably`)
@@ -515,7 +515,7 @@ To update the swift-dotnet-bindings generator, change the `SwiftBindings.Sdk` ve
 
 ### Android: Compose version mismatch
 
-Runtime crashes with `NoSuchMethodError` in Compose classes: use Intercom SDK 18.7.0 or later, which is compatible with AndroidX Compose BOM 2026.06.01.
+Runtime crashes with `NoSuchMethodError` in Compose classes: use Intercom SDK 18.8.0 or later, which is compatible with AndroidX Compose BOM 2026.06.01.
 
 ### iOS: Build on Windows
 

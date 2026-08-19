@@ -127,7 +127,7 @@
       androidx.media3:ui     → PreviewUriKt (video attachment preview); moved from
                                the -ui AAR's POM to -base's in 18.7.0
       kotlin-parcelize       → 22 @Parcelize model classes
-    Versions track what intercom-sdk-base/-ui 18.7.0 ask for, and the Media3 and
+    Versions track what intercom-sdk-base/-ui 18.8.0 ask for, and the Media3 and
     Kotlin versions already pinned below.
 
     androidx.work went the other way in 18.0.0: its POM entry disappeared along
@@ -356,12 +356,12 @@
     <AndroidLibrary Include="Jars\coil-gif-2.7.0.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\coil-video-2.7.0.aar" />
     <AndroidLibrary Include="Jars\coil-video-2.7.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-base-18.7.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-base-18.7.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-ui-18.7.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-ui-18.7.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-18.7.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.7.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-base-18.8.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-base-18.8.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-ui-18.8.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-ui-18.8.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-18.8.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.8.0.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\nexus-client-android-6.4.0.aar" />
     <AndroidLibrary Include="Jars\nexus-client-android-6.4.0.aar" Bind="false" Visible="false" />
     <!-- androidx.paging:paging-compose has no Xamarin.AndroidX binding, so it is vendored.

@@ -165,7 +165,7 @@ The iOS binding uses the `SwiftBindings.Sdk` MSBuild project SDK from
 
 ### Android binding
 
-Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (18.7.0) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
+Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (18.8.0) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
 
 Three Android-specific traps, all fixed and all easy to reintroduce:
 
@@ -178,7 +178,7 @@ Three Android-specific traps, all fixed and all easy to reintroduce:
 
 ### Optional Ably add-on
 
-`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`** (1.7.2, matching what Intercom 18.7.0's POM asks of `ably-android`), not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
+`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`** (1.7.2, matching what Intercom 18.8.0's POM asks of `ably-android`), not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
 
 ### Platform-Specific Code Pattern
 

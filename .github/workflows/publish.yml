@@ -11,7 +11,7 @@
 #   deploy         → push the exact validated artifacts to NuGet.org on release
 #
 # Pinned toolchain: .NET 10 (global.json), Xcode 26.6, SwiftBindings.Sdk (global.json
-# msbuild-sdks), Intercom iOS 19.7.2 (vendored xcframework), Intercom Android 18.7.0 (vendored AARs).
+# msbuild-sdks), Intercom iOS 19.7.2 (vendored xcframework), Intercom Android 18.8.0 (vendored AARs).
 #
 # Every package multi-targets net9.0 and net10.0 (see the TFM matrix in Directory.Build.props).
 # Both bands build from the .NET 10 SDK pinned in global.json — the android/ios workloads carry

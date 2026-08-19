@@ -1,5 +1,5 @@
 {
-  "androidSdkVersion": "18.7.0",
+  "androidSdkVersion": "18.8.0",
   "iosSdkVersion": "19.7.2",
   "symbols": {
     "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
