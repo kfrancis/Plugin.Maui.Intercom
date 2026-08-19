@@ -13,7 +13,9 @@
       "mcp__visual-studio__document_list",
       "mcp__visual-studio__build_project",
       "Bash(ls -la \"D:\\\\Github\\\\Plugin.Maui.Intercom\\\\src\\\\android\\\\Intercom.Android.Binding\\\\bin\\\\Debug\\\\net9.0-android\"\" 2>/dev/null || dir /B \"D:GithubPlugin.Maui.IntercomsrcandroidIntercom.Android.BindingbinDebugnet9.0-android \")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Read(//c/Users/byter/.claude/plugins/**)",
+      "Bash(cd *)"
     ]
   }
 }

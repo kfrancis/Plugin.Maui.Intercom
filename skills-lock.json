@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "stow": {
+      "source": "theislampill/stow",
+      "sourceType": "github",
+      "skillPath": "skills/stow/SKILL.md",
+      "computedHash": "1c658c7226c102d1dd53660bac63082f0f7cad2fa46babce922f8a1166289f8d"
+    }
+  }
+}
