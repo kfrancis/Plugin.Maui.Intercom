@@ -18,6 +18,14 @@
 #import <Intercom/ICMHelpCenterArticle.h>
 #import <Intercom/ICMHelpCenterArticleAuthor.h>
 #import <Intercom/IntercomContent.h>
+
+typedef NS_ENUM(NSInteger, ICMThemeOverride) {
+    ICMThemeOverrideNone,
+    ICMThemeOverrideLight,
+    ICMThemeOverrideDark,
+    ICMThemeOverrideSystem
+};
+
 /**
  A enum of Intercom Spaces.
  
@@ -28,6 +36,12 @@ typedef NS_ENUM(NSInteger, Space) {
     helpCenter,
     messages,
     tickets
+};
+
+/** Proactive content types whose visibility can be controlled via ``Intercom/suppressProactiveContent(_:)``. */
+typedef NS_ENUM(NSInteger, IntercomProactiveContentType) {
+    IntercomProactiveContentTypeCarousel,
+    IntercomProactiveContentTypeSurvey
 };
 
 NS_ASSUME_NONNULL_BEGIN
@@ -250,10 +264,26 @@ NS_ASSUME_NONNULL_BEGIN
  Intercom is received, Intercom for iOS will automatically launch the message from the notification.
  
  - Parameters:
-    - deviceToken: The device token provided in the `didRegisterForRemoteNotificationsWithDeviceToken` method.
-    - failure: A failure callback with an error parameter.
+   - deviceToken: The device token provided in the `didRegisterForRemoteNotificationsWithDeviceToken` method.
+   - failure: A failure callback with an error parameter.
  */
-+ (void)setDeviceToken:(NSData *)deviceToken failure:(void(^ __nullable)(NSError * _Nullable error))failure;
++ (void)setDeviceToken:(NSData *)deviceToken failure:(void(^ __nullable)(NSError * _Nullable error))failure __attribute((deprecated("'+[Intercom setDeviceToken:failure:]' is deprecated. Use '+[Intercom setDeviceToken:success:failure:]' instead.")));
+
+/**
+ Set the device token for push notifications with success and failure callbacks.
+ 
+ When your app receives a push notification, Intercom for iOS will check if it is an Intercom push notification
+ and open the message if required. The success callback is called when the device token is successfully registered,
+ and the failure callback is called if an error occurs during registration.
+ 
+ - Parameters:
+   - deviceToken: The device token provided in the `didRegisterForRemoteNotificationsWithDeviceToken` method.
+   - success: A success callback called when the device token is successfully registered.
+   - failure: A failure callback with an error parameter.
+ */
++ (void)setDeviceToken:(NSData *)deviceToken 
+               success:(void(^ __nullable)(void))success
+               failure:(void(^ __nullable)(NSError * _Nonnull error))failure NS_REFINED_FOR_SWIFT;
 
 /**
  Use this method to check if a push notification payload was sent by Intercom. Typically you should call
@@ -310,6 +340,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (void)setInAppMessagesVisible:(BOOL)visible;
 
+/** Suppress the given proactive content types. All are visible by default; pass an empty array to unsuppress all. */
++ (void)suppressProactiveContent:(NSArray<NSNumber *> *)types NS_REFINED_FOR_SWIFT;
+
 /**
  Show or hide the Intercom Launcher in your app.
  
@@ -357,11 +390,27 @@ UIKIT_EXTERN NSString *const IntercomUnreadTicketCountDidChangeNotification;
  */
 + (void)enableLogging;
 
+
 /**
  Change the Status Bar's style or visibility while an Intercom notification is on screen.
  Call this method so that Intercom's window can reflect your app's status bar accordingly.
  */
 + (void)setNeedsStatusBarAppearanceUpdate;
+
+
+#pragma mark - Theme Configuration
+
+/**
+ Sets the theme mode for the Intercom SDK.
+
+ This method allows you to override the server-provided theme setting for the current session only.
+ The theme mode controls whether the SDK displays in light mode, dark mode, or follows the system theme.
+ The theme selection will be reset when the app restarts.
+
+ - Parameters:
+ - themeOverride: The theme override to apply. Use ICMThemeOverrideNone to clear the override and use server configuration.
+ */
++ (void)setThemeOverride:(ICMThemeOverride)themeOverride;
 
 
 #pragma mark - Intercom Notifications

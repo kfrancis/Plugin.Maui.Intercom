@@ -88,19 +88,19 @@
        Change these in one place; eng/ scripts and CI read them from here. -->
   <PropertyGroup>
     <!-- Intercom iOS SDK version vendored at src/macios/Intercom.iOS.Binding/Intercom.xcframework -->
-    <IntercomIosSdkVersion>18.7.2</IntercomIosSdkVersion>
+    <IntercomIosSdkVersion>19.7.2</IntercomIosSdkVersion>
     <!-- Intercom Android SDK version vendored in src/android/Intercom.Android.Binding/Jars -->
-    <IntercomAndroidSdkVersion>17.4.1</IntercomAndroidSdkVersion>
+    <IntercomAndroidSdkVersion>18.7.0</IntercomAndroidSdkVersion>
     <!-- Ably realtime closure vendored in src/android/Intercom.Android.Ably/Jars.
          Intercom Android's POM asks for io.ably:ably-android, but it only touches core
          ably-java types, so we vendor ably-java and avoid a Firebase Messaging dependency.
          Keep ably-java in step with what the pinned Intercom SDK expects. -->
-    <AblyJavaSdkVersion>1.5.0</AblyJavaSdkVersion>
-    <AblyNetworkClientVersion>1.5.0</AblyNetworkClientVersion>
-    <MsgpackCoreVersion>0.8.11</MsgpackCoreVersion>
+    <AblyJavaSdkVersion>1.7.2</AblyJavaSdkVersion>
+    <AblyNetworkClientVersion>1.7.2</AblyNetworkClientVersion>
+    <MsgpackCoreVersion>0.9.11</MsgpackCoreVersion>
     <VcdiffCoreVersion>0.1.1</VcdiffCoreVersion>
     <!-- swift-dotnet-bindings MSBuild project SDK version is pinned in global.json (msbuild-sdks).
          This property mirrors it for scripts/CI that need the value without JSON parsing. -->
-    <SwiftBindingsSdkVersion>0.18.1</SwiftBindingsSdkVersion>
+    <SwiftBindingsSdkVersion>0.19.0</SwiftBindingsSdkVersion>
   </PropertyGroup>
 </Project>

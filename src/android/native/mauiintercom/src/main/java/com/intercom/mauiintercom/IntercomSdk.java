@@ -68,6 +68,12 @@ public final class IntercomSdk {
             ThemeMode.DARK
     };
 
+    // Mirrors Plugin.Maui.Intercom.IntercomProactiveContentType.
+    private static final Intercom.ContentType[] PROACTIVE_CONTENT_TYPES = {
+            Intercom.ContentType.CAROUSEL,
+            Intercom.ContentType.SURVEY
+    };
+
     // Mirrors the content type ordinals in Plugin.Maui.Intercom.IntercomContent.
     private static final int CONTENT_ARTICLE = 0;
     private static final int CONTENT_CAROUSEL = 1;
@@ -327,6 +333,19 @@ public final class IntercomSdk {
      */
     public static void setInAppMessagesVisible(boolean visible) {
         Intercom.client().setInAppMessageVisibility(visible ? Intercom.Visibility.VISIBLE : Intercom.Visibility.GONE);
+    }
+
+    /**
+     * Suppress the given kinds of proactive content.
+     * @param typeOrdinals {int[]} Plugin.Maui.Intercom.IntercomProactiveContentType ordinals;
+     *                     empty un-suppresses everything
+     */
+    public static void suppressProactiveContent(int[] typeOrdinals) {
+        List<Intercom.ContentType> types = new ArrayList<>();
+        for (int ordinal : typeOrdinals) {
+            types.add(PROACTIVE_CONTENT_TYPES[ordinal]);
+        }
+        Intercom.client().suppressProactiveContent(types);
     }
 
     /**

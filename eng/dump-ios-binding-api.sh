@@ -46,8 +46,10 @@ REQUIRED=(
   "FetchHelpCenterCollectionsWithCompletion" "FetchHelpCenterCollection" "SearchHelpCenter"
   "SetDeviceToken" "IsIntercomPushNotification" "HandleIntercomPushNotification"
   "SetBottomPadding" "SetInAppMessagesVisible" "SetLauncherVisible"
+  "SuppressProactiveContent" "SetThemeOverride" "ICMThemeOverride"
   "UnreadConversationCount" "EnableLogging"
   "ArticleWithId" "CarouselWithId" "SurveyWithId" "ConversationWithId" "HelpCenterCollectionsWithIds"
+  "TicketWithId"
 )
 
 if [[ "${1:-}" == "--check" ]]; then

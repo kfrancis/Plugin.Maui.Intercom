@@ -1,6 +1,6 @@
 {
-  "androidSdkVersion": "17.4.1",
-  "iosSdkVersion": "18.7.2",
+  "androidSdkVersion": "18.7.0",
+  "iosSdkVersion": "19.7.2",
   "symbols": {
     "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
       "status": "covered",
@@ -134,14 +134,6 @@
       "status": "covered",
       "member": "IIntercom.UnreadConversationCount"
     },
-    "android:io.intercom.android.sdk.Intercom#handlePushMessage()": {
-      "status": "skipped",
-      "reason": "Opens the Messenger for a push the app displayed itself. IntercomPushClient.handlePush covers the supported flow."
-    },
-    "android:io.intercom.android.sdk.Intercom#handlePushMessage(TaskStackBuilder)": {
-      "status": "skipped",
-      "reason": "Opens the Messenger for a push the app displayed itself. IntercomPushClient.handlePush covers the supported flow."
-    },
     "android:io.intercom.android.sdk.Intercom#hideIntercom()": {
       "status": "covered",
       "member": "IIntercom.HideIntercom"
@@ -230,6 +222,10 @@
       "status": "covered",
       "member": "IIntercom.EnableLogging"
     },
+    "android:io.intercom.android.sdk.Intercom#setMessengerEnvironment(String)": {
+      "status": "skipped",
+      "reason": "Android-only: Intercom for iOS declares no setMessengerEnvironment on its public ObjC surface, and the API only applies to Fin for Platforms standalone apps. Surfacing it would add a member that throws PlatformNotSupportedException on half the targets."
+    },
     "android:io.intercom.android.sdk.Intercom#setThemeMode(ThemeMode)": {
       "status": "covered",
       "member": "IIntercom.SetThemeMode"
@@ -242,6 +238,10 @@
       "status": "covered",
       "member": "IIntercom.SetUserJwt"
     },
+    "android:io.intercom.android.sdk.Intercom#suppressProactiveContent(List)": {
+      "status": "covered",
+      "member": "IIntercom.SuppressProactiveContent"
+    },
     "android:io.intercom.android.sdk.Intercom#unregisterForLateInitialisation(Application)": {
       "status": "skipped",
       "reason": "Alternative init path for apps that cannot initialise eagerly. Initialize covers the supported flow."
@@ -253,6 +253,14 @@
     "android:io.intercom.android.sdk.Intercom#updateUser(UserAttributes,IntercomStatusCallback)": {
       "status": "covered",
       "member": "IIntercom.UpdateUserAsync"
+    },
+    "android:io.intercom.android.sdk.Intercom$ContentType#CAROUSEL": {
+      "status": "covered",
+      "member": "IntercomProactiveContentType"
+    },
+    "android:io.intercom.android.sdk.Intercom$ContentType#SURVEY": {
+      "status": "covered",
+      "member": "IntercomProactiveContentType"
     },
     "android:io.intercom.android.sdk.Intercom$LogLevel#ASSERT": {
       "status": "covered",
@@ -951,6 +959,10 @@
       "member": "IIntercom.SetBottomPaddingDp"
     },
     "ios:Intercom+setDeviceToken:failure:": {
+      "status": "skipped",
+      "reason": "Deprecated in Intercom iOS 19.2.0 in favour of setDeviceToken:success:failure:, which IIntercom.SendPushTokenToIntercomAsync calls instead."
+    },
+    "ios:Intercom+setDeviceToken:success:failure:": {
       "status": "covered",
       "member": "IIntercom.SendPushTokenToIntercomAsync"
     },
@@ -966,6 +978,10 @@
       "status": "skipped",
       "reason": "UIKit status-bar hook with no Android counterpart; iOS consumers can call IntercomBinding.Intercom directly."
     },
+    "ios:Intercom+setThemeOverride:": {
+      "status": "covered",
+      "member": "IIntercom.SetThemeMode"
+    },
     "ios:Intercom+setUserHash:": {
       "status": "covered",
       "member": "IIntercom.SetUserHash"
@@ -973,6 +989,10 @@
     "ios:Intercom+setUserJwt:": {
       "status": "covered",
       "member": "IIntercom.SetUserJwt"
+    },
+    "ios:Intercom+suppressProactiveContent:": {
+      "status": "covered",
+      "member": "IIntercom.SuppressProactiveContent"
     },
     "ios:Intercom+unreadConversationCount": {
       "status": "covered",
@@ -1001,6 +1021,10 @@
     "ios:IntercomContent+surveyWithId:": {
       "status": "covered",
       "member": "IntercomContent.Survey"
+    },
+    "ios:IntercomContent+ticketWithId:": {
+      "status": "covered",
+      "member": "IntercomContent.Ticket"
     },
     "ios:IntercomContentProtocol.contentId": {
       "status": "skipped",
@@ -1062,6 +1086,10 @@
       "status": "covered",
       "member": "IntercomContent"
     },
+    "ios:enum:ContentType.ticket": {
+      "status": "covered",
+      "member": "IntercomContent"
+    },
     "ios:enum:ICMHelpCenterDataError.contentNotAvailable": {
       "status": "covered",
       "member": "IntercomException.ErrorCode"
@@ -1081,6 +1109,30 @@
     "ios:enum:ICMHelpCenterDataError.somethingWentWrong": {
       "status": "covered",
       "member": "IntercomException.ErrorCode"
+    },
+    "ios:enum:ICMThemeOverride.ICMThemeOverrideDark": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "ios:enum:ICMThemeOverride.ICMThemeOverrideLight": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "ios:enum:ICMThemeOverride.ICMThemeOverrideNone": {
+      "status": "skipped",
+      "reason": "Clears the theme override and hands the choice back to the workspace. Android's ThemeMode has no counterpart, so IntercomThemeMode deliberately omits it."
+    },
+    "ios:enum:ICMThemeOverride.ICMThemeOverrideSystem": {
+      "status": "covered",
+      "member": "IntercomThemeMode"
+    },
+    "ios:enum:IntercomProactiveContentType.IntercomProactiveContentTypeCarousel": {
+      "status": "covered",
+      "member": "IntercomProactiveContentType"
+    },
+    "ios:enum:IntercomProactiveContentType.IntercomProactiveContentTypeSurvey": {
+      "status": "covered",
+      "member": "IntercomProactiveContentType"
     },
     "ios:enum:Space.helpCenter": {
       "status": "covered",

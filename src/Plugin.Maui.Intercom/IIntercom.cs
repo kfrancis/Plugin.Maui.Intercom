@@ -168,9 +168,6 @@ public interface IIntercom
     ///     Opens a specific piece of Intercom content directly.
     /// </summary>
     /// <param name="content">The article, survey, carousel, conversation, ticket or collection list to show.</param>
-    /// <exception cref="PlatformNotSupportedException">
-    ///     On iOS, when <paramref name="content" /> is an <see cref="IntercomContent.Ticket" />.
-    /// </exception>
     void PresentContent(IntercomContent content);
 
     /// <summary>
@@ -196,8 +193,25 @@ public interface IIntercom
     ///     Shows or hides in-app messages.
     /// </summary>
     /// <param name="visible">Whether in-app messages should be visible. They are visible by default.</param>
-    /// <remarks>Does not affect carousels or surveys, which are presented explicitly.</remarks>
+    /// <remarks>
+    ///     Does not affect carousels or surveys; those are suppressed with
+    ///     <see cref="SuppressProactiveContent" />.
+    /// </remarks>
     void SetInAppMessagesVisible(bool visible);
+
+    /// <summary>
+    ///     Stops Intercom from showing the given kinds of proactive content.
+    /// </summary>
+    /// <param name="types">
+    ///     The content types to suppress. Pass an empty list to un-suppress everything;
+    ///     each call replaces the previous set rather than adding to it.
+    /// </param>
+    /// <remarks>
+    ///     Useful during onboarding or a pre-authentication flow, where a carousel or survey
+    ///     firing over your own UI is disruptive. In-app messages are separate — see
+    ///     <see cref="SetInAppMessagesVisible" />.
+    /// </remarks>
+    void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types);
 
     /// <summary>
     ///     Sets the distance between the bottom of the screen and the launcher and in-app messages.
@@ -214,10 +228,10 @@ public interface IIntercom
     ///     Overrides the Messenger's light/dark appearance.
     /// </summary>
     /// <param name="mode">The theme to apply.</param>
-    /// <exception cref="PlatformNotSupportedException">
-    ///     On iOS — the pinned Intercom iOS SDK exposes no theme override on its public ObjC
-    ///     surface. See <see cref="IntercomThemeMode" />.
-    /// </exception>
+    /// <remarks>
+    ///     On iOS the override lasts for the session only — the SDK reverts to the
+    ///     workspace's configured theme when the app restarts. Android's persists.
+    /// </remarks>
     void SetThemeMode(IntercomThemeMode mode);
 
     // ── Unread conversations ────────────────────────────────────────────────

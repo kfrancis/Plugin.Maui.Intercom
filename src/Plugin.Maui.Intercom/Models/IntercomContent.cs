@@ -73,10 +73,8 @@ public abstract record IntercomContent
     ///     A ticket.
     /// </summary>
     /// <remarks>
-    ///     Android only — <c>IntercomContent.Ticket</c> has no counterpart on the iOS
-    ///     <c>IntercomContent</c> factory. Presenting it on iOS throws
-    ///     <see cref="PlatformNotSupportedException" />; use
-    ///     <see cref="IntercomSpace.Tickets" /> there instead, which both platforms have.
+    ///     Supported on both platforms since Intercom iOS 19.x added
+    ///     <c>IntercomContent.ticketWithId:</c>; before that this was Android only.
     /// </remarks>
     public sealed record Ticket : IntercomContent
     {

@@ -39,8 +39,10 @@
          and generates no Resource class. Pointing RootNamespace at the namespace the
          bound Java types already use keeps the global namespace clear. -->
     <RootNamespace>MauiIntercomAndroid</RootNamespace>
-    <!-- API 23 (Android 6.0), not 21: AndroidX Emoji2 1.6.0 in the resolved graph declares
-         minSdk 23, so a consuming app at 21 fails manifest merge outright. -->
+    <!-- API 23 (Android 6.0), not 21. Intercom Android 18.0.0 raised its own floor to 23,
+         and AndroidX Emoji2 1.6.0 in the resolved graph declares the same, so a consuming
+         app at 21 fails manifest merge outright. Apps that must keep API 21 have to stay on
+         a plugin version pinned to Intercom 17.x. -->
     <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -69,9 +71,9 @@
 
          2.8.9.1 is what MAUI 9 asks for, so the net9 band takes it and the long-standing
          NU1608 on this family disappears there as a side effect. MAUI 10 is built against
-         2.9.x, so the net10 band keeps 2.9.2.1. -->
+         2.9.x, so the net10 band tracks what Intercom's POM asks for (2.9.8). -->
     <IntercomAndroidXNavigationVersion Condition="$(TargetFramework.StartsWith('net9.0'))">2.8.9.1</IntercomAndroidXNavigationVersion>
-    <IntercomAndroidXNavigationVersion Condition="'$(IntercomAndroidXNavigationVersion)' == ''">2.9.2.1</IntercomAndroidXNavigationVersion>
+    <IntercomAndroidXNavigationVersion Condition="'$(IntercomAndroidXNavigationVersion)' == ''">2.9.8.1</IntercomAndroidXNavigationVersion>
     <!--
       NOTE: you can simply add .aar or .jar files in this directory to be included in the project.
       To learn more, see: https://learn.microsoft.com/dotnet/maui/migration/android-binding-projects
@@ -113,30 +115,38 @@
     We exclude the .Jvm variant since we're building for Android and need the .Android variant.
   -->
   <ItemGroup>
-    <PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.9.2" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="Xamarin.AndroidX.Compose.Runtime.Annotation.Jvm" Version="1.11.4" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <!--
     Declared by the Intercom AARs' POMs but previously absent from this graph.
     The vendored classes reference them directly, so without these the messenger
     hits NoClassDefFoundError at runtime while the rest of the SDK works:
-      androidx.work          → SendMessageWorker, ConversationReplyReceiver (push quick-reply)
-      androidx.media3:ui     → PreviewUriKt (video attachment preview)
+      androidx.datastore     → the whole persistence layer, since Intercom 18.0.0
+                               moved off SharedPreferences (865 references)
+      androidx.media3:ui     → PreviewUriKt (video attachment preview); moved from
+                               the -ui AAR's POM to -base's in 18.7.0
       kotlin-parcelize       → 22 @Parcelize model classes
-    Versions track what intercom-sdk-base/-ui 17.4.1 ask for, and the Media3 and
+    Versions track what intercom-sdk-base/-ui 18.7.0 ask for, and the Media3 and
     Kotlin versions already pinned below.
+
+    androidx.work went the other way in 18.0.0: its POM entry disappeared along
+    with the removed handlePushMessage APIs, and the vendored classes no longer
+    name androidx.work at all, so the reference is gone from here too.
   -->
   <ItemGroup>
-    <PackageReference Include="Xamarin.AndroidX.Work.Runtime" Version="2.9.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.DataStore.Preferences" Version="1.2.1.1" />
+    <PackageReference Include="Xamarin.AndroidX.DataStore.Core" Version="1.2.1.1" />
     <PackageReference Include="Xamarin.AndroidX.Media3.UI" Version="1.6.1.1" />
-    <PackageReference Include="Xamarin.Kotlin.Parcelize.Runtime" Version="2.2.20" />
+    <PackageReference Include="Xamarin.Kotlin.Parcelize.Runtime" Version="2.4.0.1" />
   </ItemGroup>
 
   <!--
     Explicit pins that settle NU1608 constraint violations: each was being pulled
     in transitively at a version outside a sibling's declared range, which NuGet
     warns about and then resolves anyway. Aligning the whole Lifecycle family on
-    2.9.4 removes them. Lifecycle.Service comes in via Work.Runtime above.
+    one version removes them. (Lifecycle.Service used to be here because
+    Work.Runtime dragged it in; with Work gone it has no reason to be pinned.)
 
     Knowingly left in place: Xamarin.AndroidX.Emoji2.ViewsHelper 1.5.0.6 requires
     Emoji2 [1.5.0.6, 1.5.1) but AppCompat resolves Emoji2 1.6.0. Clearing it means
@@ -144,22 +154,20 @@
     an AndroidX floor bump for the whole plugin.
 
     The alternative was pinning Emoji2 down to 1.5.0.6 to keep an API 21 floor.
-    We took Emoji2 1.6.0 instead and raised SupportedOSPlatformVersion to 23,
-    because Emoji2 1.6.0 declares minSdk 23 and an app at 21 fails manifest merge.
-    So this warning is expected; the minimum supported Android is API 23.
+    That option is gone: Intercom 18.0.0 requires minSdk 23 itself, so
+    SupportedOSPlatformVersion stays at 23 regardless. The warning is expected.
   -->
   <ItemGroup>
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.9.4" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Ktx" Version="2.9.4" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.9.4" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.9.4" />
-    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Service" Version="2.9.4" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.11.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Ktx" Version="2.11.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.11.0.1" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GoogleGson" Version="2.13.1.1" />
+    <PackageReference Include="GoogleGson" Version="2.14.0.1" />
     <PackageReference Include="Square.OkIO">
-      <Version>3.9.1.3</Version>
+      <Version>3.17.0.1</Version>
     </PackageReference>
     <PackageReference Include="Square.Retrofit2">
       <Version>2.11.0.5</Version>
@@ -171,28 +179,28 @@
       <Version>4.16.0.14</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Activity">
-      <Version>1.11.0</Version>
+      <Version>1.13.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Activity.Compose">
-      <Version>1.11.0</Version>
+      <Version>1.13.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Annotation">
-      <Version>1.9.1.5</Version>
+      <Version>1.10.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat">
-      <Version>1.7.1.1</Version>
+      <Version>1.7.1.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat.AppCompatResources">
-      <Version>1.7.1.1</Version>
+      <Version>1.7.1.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Collection">
-      <Version>1.5.0.3</Version>
+      <Version>1.6.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.Foundation">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.Material">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.Material.Icons.Core">
       <Version>1.7.8.3</Version>
@@ -201,37 +209,37 @@
       <Version>1.4.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.Runtime">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.UI">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.UI.Tooling">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Compose.UI.Tooling.Preview">
-      <Version>1.9.2</Version>
+      <Version>1.11.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.ConstraintLayout">
-      <Version>2.2.1.3</Version>
+      <Version>2.2.1.6</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Core">
-      <Version>1.17.0</Version>
+      <Version>1.19.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Core.Core.Ktx">
-      <Version>1.17.0</Version>
+      <Version>1.19.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.DataBinding.ViewBinding">
-      <Version>8.9.1.1</Version>
+      <Version>8.10.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.ExifInterface">
-      <Version>1.4.1.1</Version>
+      <Version>1.4.2.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Fragment">
-      <Version>1.8.8.1</Version>
+      <Version>1.8.9.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx">
-      <Version>1.8.8.1</Version>
+      <Version>1.8.9.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI">
       <Version>1.0.0.33</Version>
@@ -240,25 +248,25 @@
       <Version>1.0.0.32</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Common">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime.Ktx">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Compose">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.ViewModel.Ktx">
-      <Version>2.9.4</Version>
+      <Version>2.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Media3.ExoPlayer">
       <Version>1.6.1.1</Version>
@@ -289,26 +297,25 @@
       <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Paging.Common">
-      <Version>3.3.6.1</Version>
+      <Version>3.4.1.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Paging.Runtime.Ktx">
-      <Version>3.3.6.1</Version>
+      <Version>3.4.1.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.ProfileInstaller.ProfileInstaller">
-      <Version>1.4.1.5</Version>
+      <Version>1.4.1.8</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.RecyclerView">
-      <Version>1.4.0.3</Version>
+      <Version>1.4.0.6</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.VectorDrawable">
-      <Version>1.2.0.8</Version>
+      <Version>1.2.0.11</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.VectorDrawable.Animated">
-      <Version>1.2.0.8</Version>
+      <Version>1.2.0.11</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Google.Accompanist.Permissions">
-      <Version>0.37.2.1</Version>
-    </PackageReference>
+    <!-- accompanist-permissions left Intercom's POM in 18.0.0 and the vendored classes make
+         no reference to it; only accompanist-placeholder is still used. -->
     <PackageReference Include="Xamarin.Google.Accompanist.Placeholder">
       <Version>0.36.0.4</Version>
     </PackageReference>
@@ -316,24 +323,24 @@
       <Version>0.36.0.4</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.KotlinX.Coroutines.Core">
-      <Version>1.10.2.1</Version>
+      <Version>1.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Google.Android.Material">
-      <Version>1.12.0.5</Version>
+      <Version>1.14.0.3</Version>
     </PackageReference>
-    <PackageReference Include="Xamarin.Kotlin.StdLib.Jdk8" Version="2.2.20" />
+    <PackageReference Include="Xamarin.Kotlin.StdLib.Jdk8" Version="2.4.0.1" />
 
-    <PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.2.20" />
+    <PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.4.0.1" />
 
     <PackageReference Include="Xamarin.KotlinX.Serialization.Core.Jvm">
-      <Version>1.9.0.1</Version>
+      <Version>1.11.0.1</Version>
     </PackageReference>
 
     <PackageReference Include="Xamarin.Google.Accompanist.DrawablePainter">
       <Version>0.37.2.1</Version>
     </PackageReference>
 
-    <PackageReference Include="Xamarin.KotlinX.Serialization.Json" Version="1.9.0.1" />
+    <PackageReference Include="Xamarin.KotlinX.Serialization.Json" Version="1.11.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -349,22 +356,27 @@
     <AndroidLibrary Include="Jars\coil-gif-2.7.0.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\coil-video-2.7.0.aar" />
     <AndroidLibrary Include="Jars\coil-video-2.7.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-base-17.4.1.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-base-17.4.1.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-ui-17.4.1.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-ui-17.4.1.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-17.4.1.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-17.4.1.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\nexus-client-android-6.3.4.aar" />
-    <AndroidLibrary Include="Jars\nexus-client-android-6.3.4.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\paging-compose-release.aar" />
-    <AndroidLibrary Include="Jars\paging-compose-release.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-base-18.7.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-base-18.7.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-ui-18.7.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-ui-18.7.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-18.7.0.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.7.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\nexus-client-android-6.4.0.aar" />
+    <AndroidLibrary Include="Jars\nexus-client-android-6.4.0.aar" Bind="false" Visible="false" />
+    <!-- androidx.paging:paging-compose has no Xamarin.AndroidX binding, so it is vendored.
+         From 3.4.x the artifact is a KMP facade whose Android classes live in the sibling
+         paging-compose-android, which is what has to be vendored — the facade AAR carries
+         nothing but a manifest and a licence. -->
+    <AndroidLibrary Remove="Jars\paging-compose-android-3.4.1.aar" />
+    <AndroidLibrary Include="Jars\paging-compose-android-3.4.1.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\twig-1.3.0.aar" />
     <AndroidLibrary Include="Jars\twig-1.3.0.aar" Bind="false" Visible="false" />
 
-    <AndroidLibrary Remove="Jars\sentry-7.12.1.jar" Visible="false" />
-    <AndroidJavaLibrary Include="Jars\sentry-7.12.1.jar" Visible="false" />
-    
+    <!-- io.sentry used to be vendored for Intercom's crash reporting. Intercom 18.x makes
+         no reference to it (0 hits across intercom-sdk-base/-ui's classes.jar), so the jar
+         is gone rather than shipped as dead weight in every consuming app. -->
+
     <AndroidLibrary Remove="Jars\retrofit2-kotlinx-serialization-converter-1.0.0.jar" Visible="false" />
     <AndroidJavaLibrary Include="Jars\retrofit2-kotlinx-serialization-converter-1.0.0.jar" Visible="false" />
   </ItemGroup>

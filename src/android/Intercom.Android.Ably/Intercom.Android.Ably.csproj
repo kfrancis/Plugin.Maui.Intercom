@@ -4,9 +4,10 @@
      (io.intercom.android.sdk.AblyManager). Its POM declares io.ably:ably-android, but the
      only Ably types Intercom actually references are core ably-java:
 
-         io.ably.lib.realtime.{AblyRealtime, Channel, Connection, ConnectionState,
+         io.ably.lib.realtime.{AblyRealtime, Channel, ChannelBase, ChannelEvent, ChannelState,
+                               ChannelStateListener, Connection, ConnectionState,
                                ConnectionStateListener}
-         io.ably.lib.rest.Auth$TokenCallback
+         io.ably.lib.rest.Auth{,$TokenCallback,$TokenParams}
          io.ably.lib.types.{ClientOptions, ErrorInfo, Message}
 
      Nothing from ably-android's Firebase-backed push surface is touched, so this package
@@ -59,7 +60,7 @@
        The jars ride in lib/<tfm>/ beside this package's assembly, which is how the .NET
        Android SDK discovers native Java payloads in a referenced package.
 
-       Closure (from the ably-java 1.5.0 POM), pinned in Directory.Build.props:
+       Closure (from the ably-java 1.7.2 POM), pinned in Directory.Build.props:
          io.ably:ably-java                    -> realtime + REST client
          io.ably:network-client-core          -> transport abstraction (no dependencies)
          io.ably:network-client-okhttp        -> OkHttp transport (needs okhttp 4.12.0)
@@ -88,7 +89,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GoogleGson" Version="2.13.1.1" />
+    <PackageReference Include="GoogleGson" Version="2.14.0.1" />
     <PackageReference Include="Square.OkHttp3" Version="4.12.0.9" />
     <PackageReference Include="Xamarin.Kotlin.StdLib" Version="2.2.20" />
   </ItemGroup>

@@ -55,9 +55,10 @@ Three things follow from this and are easy to get wrong:
 - **`ApiCoverageMapTests` checks the other direction** — every `covered` entry must name a
   member that really exists. Without it the gate is satisfiable by writing a plausible name
   into the JSON.
-- **developers.intercom.com is not ground truth.** It documents an iOS `setThemeOverride:` the
-  shipped headers do not declare, and omits `setUserJwt`, `setAuthTokens`,
-  `IntercomContent.Ticket`, `reset()` and the whole `IntercomPushClient`. Read the artifacts.
+- **developers.intercom.com is not ground truth.** It omits `setUserJwt`, `setAuthTokens`,
+  `reset()` and the whole `IntercomPushClient`, and it documented an iOS `setThemeOverride:`
+  and `IntercomContent.Ticket` for several releases before the shipped headers declared
+  either (both arrived in the 19.x line). Read the artifacts.
 
 ### The TFM matrix is one list, and net9 is not free
 
@@ -157,23 +158,27 @@ The iOS binding uses the `SwiftBindings.Sdk` MSBuild project SDK from
 - Binding C# is generated at build time on macOS (Xcode 26+, .NET 10). Generated sources are NOT committed; determinism comes from the pinned SDK + pinned xcframework. CI uploads generated sources as an artifact.
 - Intercom is a mixed Swift/ObjC framework whose full public API is on the ObjC umbrella header, so the binding uses the generator's pure-ObjC pipeline (`SwiftFrameworkType=ObjC` + `IsBindingProject=true`). Generated namespace is `IntercomBinding`; `Intercom.macios.cs` uses `IntercomBinding.Intercom`, `Space`, `IntercomContent`, `ICMUserAttributes`.
 - The binding has no hand-written supplement. `ApiDefinitions.extra.cs` / `StructsAndEnums.extra.cs` existed up to SwiftBindings.Sdk 0.17.0, whose `-fmodules` clang retry dropped every declaration reachable only through `#import <Intercom/SiblingHeader.h>`. 0.18.0 added `-fmodule-name` to that retry, so the ICM* classes, `IntercomContent` and the `Space`/`ContentType` NS_ENUMs are generated; the supplements were removed. Do not reintroduce them — if a member is missing after an Intercom upgrade, that is a generator bug worth filing upstream.
+- **The pure-ObjC lane is exempt from 0.19.0's Swift-import type renames**, which the release notes lead with as source-breaking. Intercom's Help Center headers carry `NS_SWIFT_NAME`, so `ICMHelpCenterCollection` would emit as `HelpCenterCollection` and collide with this plugin's own model of that name — but `ObjCSwiftImportNameRewriter` is driven by a map harvested from the Swift ABI, and the pure-ObjC `ObjCPipeline.Run` call sites pass none, making the pass a no-op. Enum *cases* are a different mechanism and do strip (`ICMThemeOverrideLight` → `ICMThemeOverride.Light`); see the binding csproj. Re-check this on any generator upgrade rather than assuming it holds.
 - The nupkg uses the classic iOS binding layout, once per band: `lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`, each holding `Intercom.iOS.Binding.dll` + `Intercom.iOS.Binding.resources.zip` (full xcframework); the .NET iOS SDK applies the NativeReference in consumers automatically.
 - SwiftBindings.Sdk documents a .NET 10 floor, but nothing in its MSBuild enforces the band: the SWIFTBIND010 gate matches on the platform substring, the pack layout derives from `$(TargetFramework)` + `$(TargetPlatformVersion)`, and on the pure-ObjC lane the implicit `SwiftBindings.Runtime` / `SwiftBindings.Apple` package references are skipped, so no managed runtime assembly has to match the consumer's band. Generation runs once per inner build. Asked upstream in [issue #45](https://github.com/justinwojo/swift-dotnet-bindings/issues/45) — if the answer is that net9 is unsupported, the fallback is to compile the generated ApiDefinition in a plain `Microsoft.NET.Sdk` binding project.
 - There is no Xcode wrapper project and no full manual ApiDefinition anymore; do not reintroduce them.
 
 ### Android binding
 
-Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (17.4.1) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
+Native Java code in `src/android/native/mauiintercom/` wraps the Intercom Android SDK; `AndroidGradleProject` in the binding csproj drives Gradle. Vendored AARs live in `src/android/Intercom.Android.Binding/Jars/`. The Intercom Android SDK version (18.7.0) must stay compatible with the pinned Xamarin.AndroidX.Compose packages.
 
 Three Android-specific traps, all fixed and all easy to reintroduce:
 
 - **`RootNamespace` must not start with `Intercom`.** The default (project name `Intercom.Android.Binding`) put the generated `Resource` class in a namespace that declared `Intercom` in the *global* namespace of every consuming app, so `Intercom.Default` failed to resolve with CS0234. Set to `MauiIntercomAndroid`. `src/sample/NamespaceCollisionRegression.cs` guards it.
 - **The binding ships `buildTransitive/*.targets`** that strips the duplicate Compose `runtime-annotation-jvm.jar`; without it every consumer fails to dex. The removal must hook `_DetermineJavaLibrariesToCompile` — `BeforeTargets="_CompileDex"` is too late.
-- **Android floor is API 23**, dictated by AndroidX Emoji2 1.6.0 in the resolved graph, not by MAUI.
+- **Android floor is API 23**, dictated by Intercom Android 18.0.0 itself and by AndroidX
+  Emoji2 1.6.0 in the resolved graph, not by MAUI. Intercom 18 also requires the Gradle
+  module to build at `compileSdk 36`; below that its AAR metadata fails the compatibility
+  check outright.
 
 ### Optional Ably add-on
 
-`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`**, not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
+`src/android/Intercom.Android.Ably/` packs `Plugin.Maui.Intercom.Android.Ably` — the realtime client Intercom uses for live conversation updates. Opt-in: the main package must never depend on it (`eng/validate-packages.sh` asserts this). It vendors **`ably-java`** (1.7.2, matching what Intercom 18.7.0's POM asks of `ably-android`), not `ably-android`, because Intercom only references core `io.ably.lib.{realtime,rest,types}` types and `ably-android`'s closure includes Firebase Messaging. Without the package Intercom degrades gracefully to polling and logs a "No realtime" warning.
 
 ### Platform-Specific Code Pattern
 

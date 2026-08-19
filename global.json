@@ -7,6 +7,6 @@
     "runner": "Microsoft.Testing.Platform"
   },
   "msbuild-sdks": {
-    "SwiftBindings.Sdk": "0.18.1"
+    "SwiftBindings.Sdk": "0.19.0"
   }
 }
