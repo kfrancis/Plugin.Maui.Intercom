@@ -63,4 +63,92 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    Suppress the broken Java Callable Wrapper (JCW) generated for
+    AndroidX.Paging.AsyncPagedListDiffer+IPagedListListenerImplementor.
+
+    Xamarin.AndroidX.Paging.Runtime emits a concrete JCW class
+    (AsyncPagedListDiffer_PagedListListenerImplementor) that implements
+    AsyncPagedListDiffer.PagedListListener but registers __md_methods = ""
+    — so the generated Java stub has no implementation for onCurrentListChanged,
+    making it invalid Java and causing a JAVAC compile error in every consuming app.
+
+    The fix: remove Xamarin.AndroidX.Paging.Runtime.dll from the assembly list
+    that _GenerateJavaStubs processes.  The native paging-runtime AAR is still
+    present on the classpath (bundled via the package's build/ targets), so
+    Intercom's Paging calls work at runtime.  The only effect is that no managed
+    C# code in the consuming app can reference AndroidX.Paging types — which is
+    fine because the plugin and sample never do.
+
+    Set PluginMauiIntercomFixPagingJcw=false to opt out.
+  -->
+  <PropertyGroup>
+    <PluginMauiIntercomFixPagingJcw Condition=" '$(PluginMauiIntercomFixPagingJcw)' == '' ">true</PluginMauiIntercomFixPagingJcw>
+  </PropertyGroup>
+
+  <!--
+    Suppress the broken Java Callable Wrapper (JCW) generated for
+    AndroidX.Paging.AsyncPagedListDiffer+IPagedListListenerImplementor.
+
+    Xamarin.AndroidX.Paging.Runtime emits a concrete JCW class
+    (AsyncPagedListDiffer_PagedListListenerImplementor) that implements
+    AsyncPagedListDiffer.PagedListListener but registers __md_methods = ""
+    — so the generated Java stub has no implementation for onCurrentListChanged,
+    making it invalid Java and causing a JAVAC compile error in every consuming app.
+
+    The fix: after _GenerateJavaStubs creates the stub, patch the file to add a
+    no-op onCurrentListChanged so the class satisfies the Java interface contract.
+    The __md_methods string remains empty, so no C# callback is invoked — this is
+    intentional: the plugin and sample never register a managed PagedListListener,
+    so the method is never called; the stub exists only to satisfy the compiler.
+
+    Set PluginMauiIntercomFixPagingJcw=false to opt out.
+  -->
+  <PropertyGroup>
+    <PluginMauiIntercomFixPagingJcw Condition=" '$(PluginMauiIntercomFixPagingJcw)' == '' ">true</PluginMauiIntercomFixPagingJcw>
+  </PropertyGroup>
+
+  <UsingTask TaskName="_PatchPagedListListenerJcw"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <JcwFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (System.IO.File.Exists(JcwFile))
+        {
+            var content = System.IO.File.ReadAllText(JcwFile);
+            // PagedList was removed from paging-runtime in Paging 3.x so it cannot
+            // appear in a concrete method signature.  Making the JCW abstract allows
+            // javac to accept the class without implementing the interface method.
+            // The class is never instantiated from managed code (it has empty
+            // __md_methods and our plugin never registers a managed PagedListListener),
+            // so the abstract keyword has no runtime effect.
+            if (!content.Contains("abstract class"))
+            {
+                content = content.Replace("public class AsyncPagedListDiffer_PagedListListenerImplementor",
+                                          "public abstract class AsyncPagedListDiffer_PagedListListenerImplementor");
+                System.IO.File.WriteAllText(JcwFile, content);
+                Log.LogMessage(
+                    Microsoft.Build.Framework.MessageImportance.Normal,
+                    "Made PagedListListener JCW abstract: {0}", JcwFile);
+            }
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="_PluginMauiIntercomPatchPagingJcw"
+          Condition=" '$(PluginMauiIntercomFixPagingJcw)' == 'true' AND '$(AndroidApplication)' == 'true' "
+          AfterTargets="_GenerateJavaStubs"
+          BeforeTargets="_CompileJava">
+    <ItemGroup>
+      <_PagingBrokenJcwFiles Include="$(IntermediateOutputPath)android\src\**\AsyncPagedListDiffer_PagedListListenerImplementor.java" />
+    </ItemGroup>
+    <_PatchPagedListListenerJcw
+        Condition="'@(_PagingBrokenJcwFiles)' != ''"
+        JcwFile="%(_PagingBrokenJcwFiles.Identity)" />
+  </Target>
+
 </Project>

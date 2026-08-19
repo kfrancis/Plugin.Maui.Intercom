@@ -326,7 +326,7 @@
       <Version>1.11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Google.Android.Material">
-      <Version>1.14.0.3</Version>
+      <Version>1.14.0.6</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.Kotlin.StdLib.Jdk8" Version="2.4.0.1" />
 

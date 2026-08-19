@@ -46,7 +46,22 @@
        produce the iOS binding at the current version, so build.ps1 narrows the plugin to
        the Android TFMs rather than failing restore on a package that cannot exist yet.
        Set them as environment variables or global properties — a semicolon-separated
-       value does not survive `-p:` on the command line. -->
+       value does not survive `-p:` on the command line.
+
+       On Windows the narrowing is applied automatically (see block below) so that Visual
+       Studio can restore and build without the iOS binding package, which only exists as
+       a net10.0-ios26.0 asset in the currently published NuGet. This does not affect CI:
+       the android job (Windows) never restores the plugin; main-package runs on macOS. -->
+
+  <!-- Automatically narrow to Android TFMs on Windows so Visual Studio opens the
+       solution and the sample can be deployed to an Android device without any extra
+       terminal setup. build.ps1 sets the same env-vars manually; setting them before
+       launching VS still wins because the Condition checks == ''. -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <IntercomPluginTargetFrameworks Condition="'$(IntercomPluginTargetFrameworks)' == ''">net9.0-android;net10.0-android</IntercomPluginTargetFrameworks>
+    <IntercomSampleTargetFrameworks Condition="'$(IntercomSampleTargetFrameworks)' == ''">net10.0-android</IntercomSampleTargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup>
     <IntercomIosTargetFrameworks Condition="'$(IntercomIosTargetFrameworks)' == ''">net9.0-ios;net10.0-ios</IntercomIosTargetFrameworks>
     <IntercomAndroidTargetFrameworks Condition="'$(IntercomAndroidTargetFrameworks)' == ''">net9.0-android;net10.0-android</IntercomAndroidTargetFrameworks>
