@@ -1,29 +1,52 @@
 ![](nuget.png)
 # Plugin.Maui.Intercom
 
-`Plugin.Maui.Intercom` provides the ability to add [Intercom](https://www.intercom.com/) to your .NET MAUI application.
+`Plugin.Maui.Intercom` adds [Intercom](https://www.intercom.com/) to your .NET MAUI application.
 
 - **Android**: a classic binding of the Intercom Android SDK plus a small native wrapper.
 - **iOS**: a binding of the official Intercom iOS `Intercom.xcframework`, generated with [swift-dotnet-bindings](https://github.com/justinwojo/swift-dotnet-bindings).
 
-## Status
-
-Both Android and iOS platforms are working.
+Both platforms are working.
 
 <img width="403" height="696" alt="Screenshot 2026-01-20 134953" src="https://github.com/user-attachments/assets/9696d97e-87a2-450a-bd76-ed261101f2f0" />
 <img width="395" height="505" alt="Screenshot 2026-01-20 124137" src="https://github.com/user-attachments/assets/c4f5a049-cdbe-46fc-bce4-bc1b4260c8d2" />
 
-## Install Plugin
+## Quick start
+
+1. Install the package: `dotnet add package Plugin.Maui.Intercom`.
+2. Call `.UseIntercom(...)` in `MauiProgram.cs` with your App ID and platform API keys (see [Setup](#setup)).
+3. Log a user in and present the messenger:
+
+```csharp
+await Intercom.Default.LoginUnidentifiedUserAsync();
+Intercom.Default.Present();
+```
+
+## Install
 
 [![NuGet](https://img.shields.io/nuget/v/Plugin.Maui.Intercom.svg?label=NuGet)](https://www.nuget.org/packages/Plugin.Maui.Intercom/)
 
-Available on [NuGet](http://www.nuget.org/packages/Plugin.Maui.Intercom).
+Available on [NuGet](http://www.nuget.org/packages/Plugin.Maui.Intercom). Install with the dotnet CLI (`dotnet add package Plugin.Maui.Intercom`) or the NuGet Package Manager in Visual Studio.
 
-Install with the dotnet CLI: `dotnet add package Plugin.Maui.Intercom`, or through the NuGet Package Manager in Visual Studio.
+The platform binding packages (`Plugin.Maui.Intercom.iOS.Binding`, `Plugin.Maui.Intercom.Android.Binding`) are platform-specific NuGet dependencies of the main package and restore automatically — never reference them directly.
 
-The platform binding packages (`Plugin.Maui.Intercom.iOS.Binding`, `Plugin.Maui.Intercom.Android.Binding`) are declared as platform-specific NuGet dependencies of the main package and restore automatically — never reference them directly.
+### Supported platforms and versions
 
-#### Optional: Android realtime (`Plugin.Maui.Intercom.Android.Ably`)
+| | Version |
+|----------|---------------------------|
+| .NET | **.NET 9 and .NET 10** (`net9.0-ios`, `net9.0-android`, `net10.0-ios`, `net10.0-android`) |
+| .NET MAUI | 9.x or 10.x |
+| iOS | 15.0+ |
+| Android | 6.0 (API 23)+ |
+
+### Native SDK versions (pinned)
+
+| Platform | Intercom SDK Version |
+|----------|---------------------|
+| Android  | 18.7.0              |
+| iOS      | 19.7.2              |
+
+### Optional: Android realtime (`Plugin.Maui.Intercom.Android.Ably`)
 
 Intercom's Android SDK uses [Ably](https://ably.com) for live conversation updates — messages arriving while the messenger is open, typing indicators, unread-count changes. That client is **not** included by default, so out of the box Android falls back to polling and logs:
 
@@ -41,33 +64,17 @@ There is no API to call and nothing to initialize — the Intercom SDK picks the
 
 It is a separate, opt-in package because Intercom's POM asks for `io.ably:ably-android`, whose closure includes **Firebase Messaging**. Every Ably type Intercom actually references is core `ably-java`, so this package vendors that instead and imposes no Firebase dependency on anyone. iOS needs nothing equivalent — the Intercom iOS SDK ships its realtime transport inside `Intercom.xcframework`.
 
-### Supported Platforms and Versions
-
-| | Version |
-|----------|---------------------------|
-| .NET | **.NET 9 and .NET 10** (`net9.0-ios`, `net9.0-android`, `net10.0-ios`, `net10.0-android`) |
-| .NET MAUI | 9.x or 10.x |
-| iOS | 15.0+ |
-| Android | 6.0 (API 23)+ |
-
-### Native SDK Versions (pinned)
-
-| Platform | Intercom SDK Version |
-|----------|---------------------|
-| Android  | 18.7.0              |
-| iOS      | 19.7.2              |
+### Version notes
 
 > **Breaking change (0.9.0):** the whole `IIntercom` surface was replaced. The previous API reached about a third of the native Intercom SDKs; 0.9 reaches all of it, and `eng/api-coverage.sh` fails the build if that stops being true. Every member was renamed or resignatured — see [MIGRATION.md](MIGRATION.md). Still 0.x deliberately: the surface has not been exercised on real devices long enough to promise compatibility.
 
 > **.NET 9 support is back (0.9.0):** every package multi-targets `net9.0-*` and `net10.0-*` again, so a .NET 9 MAUI app can take the current release. .NET 9 reaches end of support on 2026-11-10; the net9 target frameworks will be dropped after that.
 
-> **Breaking change (0.7.0):** the plugin targeted .NET 10 only from 0.7.0 through 0.8.x — .NET 9 consumers on those versions had to stay on 0.6.x (see the note above; 0.9.0 restores net9). The iOS binding was replaced: the former `MauiIntercomMaciOS` wrapper types and the public `DictionaryExtensions.ToNSDictionary` iOS helper were removed. The `IIntercom` interface itself is source-compatible, with three additions: `LogEvent(string name)`, `EnableLogging()` and `IsUserLoggedIn` — all implemented on both platforms.
+> **Breaking change (0.7.0):** the plugin targeted .NET 10 only from 0.7.0 through 0.8.x — .NET 9 consumers on those versions had to stay on 0.6.x (0.9.0 restores net9). The iOS binding was replaced: the former `MauiIntercomMaciOS` wrapper types and the public `DictionaryExtensions.ToNSDictionary` iOS helper were removed. The `IIntercom` interface itself is source-compatible, with three additions: `LogEvent(string name)`, `EnableLogging()` and `IsUserLoggedIn` — all implemented on both platforms.
 
 ## Setup
 
-### MauiProgram.cs
-
-Register Intercom in your `MauiProgram.cs`:
+### Register in MauiProgram.cs
 
 ```csharp
 using Plugin.Maui.Intercom;
@@ -95,34 +102,28 @@ public static class MauiProgram
 }
 ```
 
-Both platforms' keys go in, and the plugin picks the pair that matches the running platform —
-no `#if ANDROID` in your app. It then calls `Initialize` for you from the platform lifecycle
-(`Application.OnCreate` on Android, `didFinishLaunching` on iOS), which is the earliest point
-each native SDK accepts it. See [Initialization](#initialization) for credentials that are not
-known at startup.
+Both platforms' keys go in, and the plugin picks the pair that matches the running platform — no `#if ANDROID` in your app. It then calls `Initialize` for you from the platform lifecycle (`Application.OnCreate` on Android, `didFinishLaunching` on iOS), which is the earliest point each native SDK accepts it. See [Initialization](#initialization) for credentials that are not known at startup.
 
-### Android Configuration
+### Android configuration
 
-Add the following permissions to your `Platforms/Android/AndroidManifest.xml`:
+Add these permissions to your `Platforms/Android/AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-### iOS Configuration
+### iOS configuration
 
-No additional configuration is required for iOS. The native `Intercom.framework` (including its resource bundles and `PrivacyInfo.xcprivacy`) is embedded and signed automatically by the binding package's MSBuild targets.
+No additional configuration is required. The native `Intercom.framework` (including its resource bundles and `PrivacyInfo.xcprivacy`) is embedded and signed automatically by the binding package's MSBuild targets.
 
-## API Usage
+## API usage
 
-> Upgrading from 0.7/0.8? Every member was renamed or resignatured in 0.9 — see
-> [MIGRATION.md](MIGRATION.md) for the mapping.
+> Upgrading from 0.7/0.8? Every member was renamed or resignatured in 0.9 — see [MIGRATION.md](MIGRATION.md) for the mapping.
 
 ### The whole surface
 
-Async members return a `Task` that faults with `IntercomException`, which carries the native
-error code. Everything else is synchronous and dispatches to the UI thread internally.
+Async members return a `Task` that faults with `IntercomException`, which carries the native error code. Everything else is synchronous and dispatches to the UI thread internally.
 
 | Member | Android | iOS |
 | --- | :---: | :---: |
@@ -157,32 +158,19 @@ error code. Everything else is synchronous and dispatches to the UI thread inter
 | `IsIntercomPush(payload)` | ✅ | ✅ |
 | `HandlePush(payload)` | ✅ | ✅ |
 
-Members marked `—` throw `PlatformNotSupportedException` with the reason in the message.
-`ChangeWorkspace` is the only one left: the Intercom iOS SDK has no `changeWorkspace`
-equivalent. `SetThemeMode` works on both platforms as of Intercom iOS 19.x, but iOS resets
-the override when the app restarts while Android's persists.
+Members marked `—` throw `PlatformNotSupportedException` with the reason in the message. `ChangeWorkspace` is the only one: the Intercom iOS SDK has no `changeWorkspace` equivalent. `SetThemeMode` works on both platforms as of Intercom iOS 19.x, but iOS resets the override when the app restarts while Android's persists.
 
-That table is enforced, not aspirational: `eng/api-coverage.sh` extracts the public API of the
-pinned Android AARs and iOS xcframework and fails the build if a native symbol is not
-classified in `eng/api-coverage.json`.
+That table is enforced, not aspirational: `eng/api-coverage.sh` extracts the public API of the pinned Android AARs and iOS xcframework and fails the build if a native symbol is not classified in `eng/api-coverage.json`.
 
 ### Initialization
 
-You can find your API keys and App ID in your
-[Intercom settings](https://app.intercom.com/a/apps/_/settings/android). The API key is
-platform-specific: an iOS key will not work on Android. So is the identity-verification
-secret.
+Find your API keys and App ID in your [Intercom settings](https://app.intercom.com/a/apps/_/settings/android). The API key is platform-specific: an iOS key will not work on Android. So is the identity-verification secret.
 
-`UseIntercom(options => ...)` is the normal path — it initializes during startup, from the
-platform lifecycle, and registers `IntercomOptions` as a singleton you can inject.
+`UseIntercom(options => ...)` is the normal path — it initializes during startup, from the platform lifecycle, and registers `IntercomOptions` as a singleton you can inject.
 
 #### From configuration
 
-`UseIntercom` also takes an `IConfiguration`, keyed by property name — `AppId`,
-`AndroidApiKey`, `IosApiKey`, `AndroidSecret`, `IosSecret`, `LogLevel`, `AutoInitialize`. Blank
-values are treated as absent, so a checked-in `appsettings.json` full of placeholders will not
-overwrite anything set in code. Pass a configuration that is already populated —
-`builder.Configuration` is still empty at this point unless you added your sources to it first.
+`UseIntercom` also takes an `IConfiguration`, keyed by property name — `AppId`, `AndroidApiKey`, `IosApiKey`, `AndroidSecret`, `IosSecret`, `LogLevel`, `AutoInitialize`. Blank values are treated as absent, so a checked-in `appsettings.json` full of placeholders will not overwrite anything set in code. Pass a configuration that is already populated — `builder.Configuration` is still empty at this point unless you added your sources to it first.
 
 ```csharp
 var config = new ConfigurationBuilder().AddJsonFile(...).Build();
@@ -198,8 +186,7 @@ builder.UseIntercom(config.GetSection("Intercom"), options =>
 
 #### When the credentials arrive later
 
-Fetching keys from your backend, or choosing a workspace per tenant? Turn the startup hook off
-and initialize when you have them:
+Fetching keys from your backend, or choosing a workspace per tenant? Turn the startup hook off and initialize when you have them:
 
 ```csharp
 builder.UseIntercom(options =>
@@ -215,14 +202,11 @@ options.IosApiKey = fetched.IosKey;
 Intercom.Default.Initialize(options);
 ```
 
-`Intercom.Default.Initialize(apiKey, appId)` is still there if you would rather do the whole
-thing by hand; `UseIntercom()` with no arguments registers `IIntercom` and initializes nothing.
+`Intercom.Default.Initialize(apiKey, appId)` is still there if you would rather do the whole thing by hand; `UseIntercom()` with no arguments registers `IIntercom` and initializes nothing.
 
 #### Identity verification
 
-`options.Secret` resolves the platform's secret. `ComputeUserHash` turns it into the
-HMAC-SHA256 digest `SetUserHash` wants; `ComputeUserJwt` mints the HS256 token `SetUserJwt`
-wants, which is what a workspace with Messenger Security enforced requires:
+`options.Secret` resolves the platform's secret. `ComputeUserHash` turns it into the HMAC-SHA256 digest `SetUserHash` wants; `ComputeUserJwt` mints the HS256 token `SetUserJwt` wants, which is what a workspace with Messenger Security enforced requires:
 
 ```csharp
 Intercom.Default.SetUserHash(options.ComputeUserHash("user@example.com"));
@@ -241,16 +225,9 @@ Intercom.Default.SetUserJwt(options.ComputeUserJwt(
     }));
 ```
 
-`user_id`, `email`, `iat` and `exp` are written for you and are rejected in
-`additionalClaims`. Other claim values must be a string, a numeric type, a `bool` or a
-`DateTimeOffset` (written as Unix seconds); a null value is left out. No IdentityModel
-dependency — an HS256 token is two Base64Url segments and an HMAC.
+`user_id`, `email`, `iat` and `exp` are written for you and are rejected in `additionalClaims`. Other claim values must be a string, a numeric type, a `bool` or a `DateTimeOffset` (written as Unix seconds); a null value is left out. No IdentityModel dependency — an HS256 token is two Base64Url segments and an HMAC.
 
-Anything in `IntercomOptions` ships inside the app binary and is extractable. That is fine for
-the API keys, which are client-side by design — it is not fine for the secret, and a JWT minted
-on device is a bearer token sitting next to the secret that signs it. Intercom's guidance is to
-issue both from your server and hand the app the result. `AndroidSecret`/`IosSecret`,
-`ComputeUserHash` and `ComputeUserJwt` are a development convenience.
+Anything in `IntercomOptions` ships inside the app binary and is extractable. That is fine for the API keys, which are client-side by design — it is not fine for the secret, and a JWT minted on device is a bearer token sitting next to the secret that signs it. Intercom's guidance is to issue both from your server and hand the app the result. `AndroidSecret`/`IosSecret`, `ComputeUserHash` and `ComputeUserJwt` are a development convenience.
 
 ### Logging users in
 
@@ -321,9 +298,7 @@ Intercom.Default.HideIntercom();
 
 All presentation happens on the main thread automatically.
 
-Intercom reports *every* Messenger failure the same way — a generic "something went wrong"
-screen — so check that a user is actually logged in before presenting, and turn on the native
-SDK's own logging while diagnosing:
+Intercom reports *every* Messenger failure the same way — a generic "something went wrong" screen — so check that a user is actually logged in before presenting, and turn on the native SDK's own logging while diagnosing:
 
 ```csharp
 Intercom.Default.EnableLogging();       // call before Initialize; not for release builds
@@ -337,10 +312,7 @@ if (!Intercom.Default.IsUserLoggedIn)
 Intercom.Default.Present();
 ```
 
-`EnableLogging` writes to the Xcode console on iOS and to logcat (tag `intercom`) on Android.
-The usual causes of the error screen are: no logged-in user, an API key that belongs to the
-other platform, an App ID that does not match the key, or identity verification enabled on the
-workspace without a matching `SetUserHash`/`SetUserJwt` call *before* login.
+`EnableLogging` writes to the Xcode console on iOS and to logcat (tag `intercom`) on Android. The usual causes of the error screen: no logged-in user, an API key that belongs to the other platform, an App ID that does not match the key, or identity verification enabled on the workspace without a matching `SetUserHash`/`SetUserJwt` call *before* login.
 
 ### Events
 
@@ -355,9 +327,7 @@ Intercom.Default.LogEvent("clicked_checkout", new Dictionary<string, object?>
 });
 ```
 
-Metadata values must be strings, numbers, booleans or dates. Types are preserved on the way
-across, so sending `"42"` where you previously sent `42` changes the attribute's type in your
-workspace.
+Metadata values must be strings, numbers, booleans or dates. Types are preserved on the way across, so sending `"42"` where you previously sent `42` changes the attribute's type in your workspace.
 
 ### Unread conversations
 
@@ -381,14 +351,11 @@ var results = await Intercom.Default.SearchHelpCenterAsync("refund");
 Intercom.Default.PresentContent(new IntercomContent.Article(results[0].ArticleId));
 ```
 
-`HelpCenterCollectionContent.Sections` is Android-only and is always empty on iOS — the iOS
-SDK's collection model has no sections concept.
+`HelpCenterCollectionContent.Sections` is Android-only and is always empty on iOS — the iOS SDK's collection model has no sections concept.
 
 ### Push notifications
 
-Your app still owns push registration: Firebase Messaging on Android, and
-`RegisteredForRemoteNotifications` on iOS. Hand Intercom the token that produces, then let it
-claim the payloads it sent.
+Your app still owns push registration: Firebase Messaging on Android, and `RegisteredForRemoteNotifications` on iOS. Hand Intercom the token that produces, then let it claim the payloads it sent.
 
 ```csharp
 // Android: from FirebaseMessagingService.OnNewToken
@@ -415,9 +382,7 @@ Intercom.Default.SuppressProactiveContent([IntercomProactiveContentType.Carousel
 Intercom.Default.SuppressProactiveContent([]);
 ```
 
-`SetBottomPaddingDp` takes dp on both platforms. The native APIs disagree — Android's
-`setBottomPadding` takes raw pixels and iOS's takes points — so the Android implementation
-scales by the display density, and the same argument means the same physical distance.
+`SetBottomPaddingDp` takes dp on both platforms. The native APIs disagree — Android's `setBottomPadding` takes raw pixels and iOS's takes points — so the Android implementation scales by the display density, and the same argument means the same physical distance.
 
 ### Logout
 
@@ -425,10 +390,9 @@ scales by the display density, and the same argument means the same physical dis
 Intercom.Default.Logout();
 ```
 
-### Dependency Injection
+### Dependency injection
 
-`UseIntercom()` registers `IIntercom` and `IntercomOptions` as singletons, so you can
-constructor-inject them:
+`UseIntercom()` registers `IIntercom` and `IntercomOptions` as singletons, so you can constructor-inject them:
 
 ```csharp
 public class MyViewModel
@@ -441,8 +405,7 @@ public class MyViewModel
 }
 ```
 
-The registered `IIntercom` is the same object as `Intercom.Default`, so the two styles can be
-mixed.
+The registered `IIntercom` is the same object as `Intercom.Default`, so the two styles can be mixed.
 
 ## Architecture
 
@@ -464,7 +427,7 @@ The main package declares the binding packages as platform-conditional dependenc
 - The package uses the standard iOS binding layout, once per band (`lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`): the managed assembly plus `Intercom.iOS.Binding.resources.zip` beside it containing the full `Intercom.xcframework` (device + simulator slices, resource bundles, `PrivacyInfo.xcprivacy`). The .NET iOS SDK unpacks it in consuming apps and applies the `NativeReference` automatically — embedding, linking and signing included.
 - The remaining generated C# is a **build output, not committed**: the generator ships as a pinned NuGet SDK, so builds are deterministic from pinned inputs (SDK version + vendored xcframework) without every contributor installing anything. CI uploads the generated sources as an artifact for review.
 
-## Building from Source
+## Building from source
 
 Requirements:
 
@@ -490,10 +453,7 @@ dotnet pack src/Plugin.Maui.Intercom/Plugin.Maui.Intercom.csproj -c Release --ou
 
 > The iOS binding project is intentionally not in the solution file; it can only build on macOS.
 
-On Windows, `build.ps1` does the whole Android loop: it packs the Android binding into
-`artifacts/local-feed` and restores the plugin against it. That step is not optional — the
-plugin consumes the binding as a package, not a project reference, so a change to
-`src/android/native` is invisible until it has been packed.
+On Windows, `build.ps1` does the whole Android loop: it packs the Android binding into `artifacts/local-feed` and restores the plugin against it. That step is not optional — the plugin consumes the binding as a package, not a project reference, so a change to `src/android/native` is invisible until it has been packed.
 
 ### Native API coverage
 
@@ -504,20 +464,11 @@ eng/api-coverage.sh --update   # classify newly-appeared symbols as todo for tri
 eng/api-coverage.sh --print    # dump the extracted native inventory
 ```
 
-This is what keeps `IIntercom` honest. It runs `javap` over the pinned Intercom AARs and text-
-parses the vendored `Intercom.xcframework` headers, then checks every public symbol against
-`eng/api-coverage.json`, where each is `covered` (with the plugin member that surfaces it),
-`skipped` (with a reason) or `todo`. An Intercom upgrade that adds or removes API therefore
-fails the build instead of drifting silently.
+This is what keeps `IIntercom` honest. It runs `javap` over the pinned Intercom AARs and text-parses the vendored `Intercom.xcframework` headers, then checks every public symbol against `eng/api-coverage.json`, where each is `covered` (with the plugin member that surfaces it), `skipped` (with a reason) or `todo`. An Intercom upgrade that adds or removes API therefore fails the build instead of drifting silently.
 
-Needs bash, python3, a JDK and unzip — no .NET, no Xcode, no network. Runs on Windows via Git
-Bash. `eng/update-intercom.sh` runs it automatically after bumping the iOS SDK so the API delta
-lands in the same PR as the version bump.
+Needs bash, python3, a JDK and unzip — no .NET, no Xcode, no network. Runs on Windows via Git Bash. `eng/update-intercom.sh` runs it automatically after bumping the iOS SDK so the API delta lands in the same PR as the version bump.
 
-Note that the published docs at developers.intercom.com are *not* usable as the source of
-truth: they omit `setUserJwt`, `setAuthTokens` and the whole `IntercomPushClient`, and they
-described an iOS `setThemeOverride:` for several releases before the shipped headers actually
-declared one. The vendored artifacts are.
+The published docs at developers.intercom.com are *not* usable as the source of truth: they omit `setUserJwt`, `setAuthTokens` and the whole `IntercomPushClient`, and they described an iOS `setThemeOverride:` for several releases before the shipped headers actually declared one. The vendored artifacts are.
 
 ### Tests
 
@@ -525,11 +476,7 @@ declared one. The vendored artifacts are.
 dotnet test src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj
 ```
 
-Runs on plain `net10.0` and compiles the plugin's platform-neutral sources directly, since
-`Plugin.Maui.Intercom` itself only targets android and ios. It covers the model invariants, the
-generic-.NET fallback (every `IIntercom` member must be present and must throw), and the
-integrity of `eng/api-coverage.json` — every `covered` entry has to name a member that really
-exists, which is the half `eng/api-coverage.sh` cannot check.
+Runs on plain `net10.0` and compiles the plugin's platform-neutral sources directly, since `Plugin.Maui.Intercom` itself only targets android and ios. It covers the model invariants, the generic-.NET fallback (every `IIntercom` member must be present and must throw), and the integrity of `eng/api-coverage.json` — every `covered` entry has to name a member that really exists, which is the half `eng/api-coverage.sh` cannot check.
 
 ### Clean-room package test
 
@@ -566,9 +513,9 @@ To update the swift-dotnet-bindings generator, change the `SwiftBindings.Sdk` ve
 
 ## Troubleshooting
 
-### Android: Compose Version Mismatch
+### Android: Compose version mismatch
 
-If you encounter runtime crashes related to `NoSuchMethodError` in Compose classes, ensure you're using Intercom SDK 18.7.0 or later, which is compatible with AndroidX Compose BOM 2026.06.01.
+Runtime crashes with `NoSuchMethodError` in Compose classes: use Intercom SDK 18.7.0 or later, which is compatible with AndroidX Compose BOM 2026.06.01.
 
 ### iOS: Build on Windows
 
@@ -577,6 +524,7 @@ iOS builds require macOS. The sample project skips iOS targets on Windows; the i
 ### iOS: Missing Swift symbols / linker errors
 
 The binding package ships the required wrapper frameworks and the `buildTransitive` targets add the `NativeReference`s automatically. If the linker reports missing `Intercom` or Swift symbols:
+
 - confirm `Plugin.Maui.Intercom.iOS.Binding` appears in your app's resolved packages (`obj/project.assets.json`),
 - clear the NuGet cache (`dotnet nuget locals all --clear`) and restore again,
 - make sure you are on the .NET 10 iOS workload matching your Xcode version.
@@ -595,7 +543,7 @@ The generated binding may route a small number of members through Swift calling 
 
 ## Acknowledgements
 
-This project could not have come to be without these projects and people, thank you!
+Thanks to these projects and people:
 
 - [swift-dotnet-bindings](https://github.com/justinwojo/swift-dotnet-bindings) - The Swift/ObjC → .NET binding generator used for the iOS binding
 - [.NET MAUI Community Toolkit](https://github.com/CommunityToolkit/Maui) - For the original Native Library Interop pattern
