@@ -27,6 +27,10 @@ partial class IntercomImplementation : IIntercom
     private EventHandler<int>? _unreadCountChanged;
     private NSObject? _unreadObserver;
 
+    // ── Capability ──────────────────────────────────────────────────────────
+
+    public bool IsSupported => true;
+
     // ── Lifecycle ───────────────────────────────────────────────────────────
 
     public void Initialize(string apiKey, string appId)
@@ -260,6 +264,8 @@ partial class IntercomImplementation : IIntercom
             }
         }
     }
+
+    public IObservable<int> UnreadConversationCounts => GetUnreadConversationCounts();
 
     // Intercom declares its notification names as UIKIT_EXTERN NSString constants. Reading
     // the symbol out of the loaded image is independent of whether the binding generator

@@ -14,6 +14,10 @@ partial class IntercomImplementation : IIntercom
     private const string Unsupported =
         "Intercom is only available on Android and iOS. Reference Plugin.Maui.Intercom from a platform head.";
 
+    // The one member that answers instead of throwing: it exists precisely so callers can
+    // learn Intercom is unavailable here without provoking an exception.
+    public bool IsSupported => false;
+
     public bool IsUserLoggedIn => throw new PlatformNotSupportedException(Unsupported);
 
     public int UnreadConversationCount => throw new PlatformNotSupportedException(Unsupported);
@@ -23,6 +27,8 @@ partial class IntercomImplementation : IIntercom
         add => throw new PlatformNotSupportedException(Unsupported);
         remove => throw new PlatformNotSupportedException(Unsupported);
     }
+
+    public IObservable<int> UnreadConversationCounts => throw new PlatformNotSupportedException(Unsupported);
 
     public void Initialize(string apiKey, string appId) => throw new PlatformNotSupportedException(Unsupported);
 

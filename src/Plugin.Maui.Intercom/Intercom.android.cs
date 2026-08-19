@@ -33,6 +33,10 @@ partial class IntercomImplementation : IIntercom
         ?? throw new IntercomException(
             "No Android Application context is available yet. Call Initialize after the app's Application has been created.");
 
+    // ── Capability ──────────────────────────────────────────────────────────
+
+    public bool IsSupported => true;
+
     // ── Lifecycle ───────────────────────────────────────────────────────────
 
     public void Initialize(string apiKey, string appId)
@@ -237,6 +241,8 @@ partial class IntercomImplementation : IIntercom
             }
         }
     }
+
+    public IObservable<int> UnreadConversationCounts => GetUnreadConversationCounts();
 
     // ── Help Center data ────────────────────────────────────────────────────
 

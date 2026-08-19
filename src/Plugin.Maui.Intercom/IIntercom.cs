@@ -22,6 +22,21 @@ namespace Plugin.Maui.Intercom;
 /// </remarks>
 public interface IIntercom
 {
+    // ── Capability ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    ///     Whether Intercom is available on the running platform.
+    /// </summary>
+    /// <remarks>
+    ///     <see langword="true" /> on Android and iOS, <see langword="false" /> on every other
+    ///     target (Windows, Mac Catalyst desktop, unit-test hosts). Check this once at startup
+    ///     to decide whether to wire up your support UI at all, instead of catching a
+    ///     <see cref="PlatformNotSupportedException" /> from each member on an unsupported
+    ///     platform. A handful of members are unsupported on only one of Android or iOS even
+    ///     when this is <see langword="true" />; those are documented individually.
+    /// </remarks>
+    bool IsSupported { get; }
+
     // ── Lifecycle ───────────────────────────────────────────────────────────
 
     /// <summary>
@@ -250,6 +265,22 @@ public interface IIntercom
     ///     Handlers are invoked on the UI thread.
     /// </remarks>
     event EventHandler<int> UnreadConversationCountChanged;
+
+    /// <summary>
+    ///     The unread conversation count as an observable stream, for MVVM binding.
+    /// </summary>
+    /// <remarks>
+    ///     A reactive view over <see cref="UnreadConversationCount" /> and
+    ///     <see cref="UnreadConversationCountChanged" />, offered alongside the event for
+    ///     consumers that prefer to compose it (throttle, <c>DistinctUntilChanged</c>, bind).
+    ///     Each subscriber is handed the current count immediately on subscribe — no separate
+    ///     "read the count once at startup" step — and then every subsequent change. The same
+    ///     value may arrive twice around the moment of subscribing; apply
+    ///     <c>DistinctUntilChanged</c> if that matters. The native listener is registered only
+    ///     while at least one observer is subscribed, exactly as the event is, and pushes on
+    ///     the UI thread. Disposing the subscription unsubscribes.
+    /// </remarks>
+    IObservable<int> UnreadConversationCounts { get; }
 
     // ── Help Center data ────────────────────────────────────────────────────
 

@@ -281,6 +281,8 @@ public sealed class IntercomOptionsTests
 
         public void EnableLogging(IntercomLogLevel level = IntercomLogLevel.Verbose) => Calls.Add($"EnableLogging({level})");
 
+        public bool IsSupported => throw new NotSupportedException();
+
         public bool IsUserLoggedIn => throw new NotSupportedException();
 
         public int UnreadConversationCount => throw new NotSupportedException();
@@ -290,6 +292,8 @@ public sealed class IntercomOptionsTests
             add => throw new NotSupportedException();
             remove => throw new NotSupportedException();
         }
+
+        public IObservable<int> UnreadConversationCounts => throw new NotSupportedException();
 
         public void ChangeWorkspace(string apiKey, string appId) => throw new NotSupportedException();
 

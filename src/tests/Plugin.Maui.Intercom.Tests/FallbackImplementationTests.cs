@@ -22,6 +22,13 @@ public sealed class FallbackImplementationTests
 
         foreach (var method in typeof(IIntercom).GetMethods())
         {
+            // IsSupported is the one member that must answer rather than throw — it exists so
+            // callers can detect the unsupported platform without provoking an exception.
+            if (method.Name == "get_IsSupported")
+            {
+                continue;
+            }
+
             var arguments = method.GetParameters()
                 .Select(p => p.ParameterType.IsValueType ? Activator.CreateInstance(p.ParameterType) : null)
                 .ToArray();
@@ -43,6 +50,10 @@ public sealed class FallbackImplementationTests
 
         await Assert.That(failures).IsEmpty();
     }
+
+    [Test]
+    public async Task IsSupportedIsFalseOnFallback() =>
+        await Assert.That(Intercom.Default.IsSupported).IsFalse();
 
     [Test]
     public async Task DefaultIsASingleton() =>
