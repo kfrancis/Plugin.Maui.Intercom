@@ -16,6 +16,26 @@ namespace Plugin.Maui.Intercom;
 /// </remarks>
 public sealed class IntercomException : Exception
 {
+    /// <summary>Creates an exception with no message.</summary>
+    public IntercomException()
+    {
+    }
+
+    /// <summary>Creates an exception with the given message.</summary>
+    /// <param name="message">The error message.</param>
+    public IntercomException(string message)
+        : base(message)
+    {
+    }
+
+    /// <summary>Creates an exception with the given message and inner exception.</summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="innerException">The underlying exception.</param>
+    public IntercomException(string message, Exception? innerException)
+        : base(message, innerException)
+    {
+    }
+
     /// <summary>Creates an exception describing a native Intercom failure.</summary>
     /// <param name="message">The native error message.</param>
     /// <param name="errorCode">The native error code, when the platform reported one.</param>

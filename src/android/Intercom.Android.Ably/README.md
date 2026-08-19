@@ -58,7 +58,7 @@ Vendored, version-pinned in `Directory.Build.props`:
 
 ## Platform
 
-- Target framework: `net10.0-android`
+- Target frameworks: `net9.0-android` and `net10.0-android`
 - Minimum Android: 6.0 (API 23)
 - iOS needs nothing equivalent — the Intercom iOS SDK ships its realtime transport inside
   `Intercom.xcframework`.

@@ -2,7 +2,7 @@
 
 iOS native bindings for the [Intercom iOS SDK](https://github.com/intercom/intercom-ios), generated with [swift-dotnet-bindings](https://github.com/justinwojo/swift-dotnet-bindings).
 
-This package is a platform dependency of [Plugin.Maui.Intercom](https://www.nuget.org/packages/Plugin.Maui.Intercom) and is restored automatically when you reference the main package from a `net10.0-ios` MAUI application. You normally do not reference it directly.
+Platform dependency of [Plugin.Maui.Intercom](https://www.nuget.org/packages/Plugin.Maui.Intercom); restored automatically when you reference the main package from a `net9.0-ios` or `net10.0-ios` MAUI application. Do not reference it directly.
 
 ## Contents
 
@@ -11,10 +11,10 @@ This package is a platform dependency of [Plugin.Maui.Intercom](https://www.nuge
 
 ## Versions
 
-- Intercom iOS SDK version: pinned in this repository (see `Directory.Build.props`, `IntercomIosSdkVersion`).
-- Minimum iOS version: 15.0.
-- Target framework: `net10.0-ios`.
+- Intercom iOS SDK: 19.7.2 (pinned in `Directory.Build.props`, `IntercomIosSdkVersion`).
+- Minimum iOS: 15.0.
+- Target frameworks: `net9.0-ios` and `net10.0-ios` (packed per band as `lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`).
 
 ## Regeneration
 
-The binding is regenerated from the vendored xcframework at build time on macOS with Xcode 26+ and the .NET 10 SDK. See `eng/generate-ios-binding.sh` in the repository for the reproducible build and `eng/update-intercom.sh` for upgrading the pinned Intercom version.
+Regenerated from the vendored xcframework at build time on macOS with Xcode 26+ and the .NET 10 SDK. See `eng/generate-ios-binding.sh` for the reproducible build and `eng/update-intercom.sh` for upgrading the pinned Intercom version.

@@ -90,7 +90,7 @@
     <!-- Intercom iOS SDK version vendored at src/macios/Intercom.iOS.Binding/Intercom.xcframework -->
     <IntercomIosSdkVersion>19.7.2</IntercomIosSdkVersion>
     <!-- Intercom Android SDK version vendored in src/android/Intercom.Android.Binding/Jars -->
-    <IntercomAndroidSdkVersion>18.7.0</IntercomAndroidSdkVersion>
+    <IntercomAndroidSdkVersion>18.8.0</IntercomAndroidSdkVersion>
     <!-- Ably realtime closure vendored in src/android/Intercom.Android.Ably/Jars.
          Intercom Android's POM asks for io.ably:ably-android, but it only touches core
          ably-java types, so we vendor ably-java and avoid a Firebase Messaging dependency.

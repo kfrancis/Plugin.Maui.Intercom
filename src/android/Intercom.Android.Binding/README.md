@@ -1,25 +1,28 @@
 # Plugin.Maui.Intercom.Android.Binding
 
-This package contains Android native bindings for the Intercom SDK (version 18.7.0).
+Android native bindings for the Intercom SDK (18.8.0).
 
-**This is a dependency package for Plugin.Maui.Intercom and should not be referenced directly.**
-
-To use Intercom in your .NET MAUI application, install the main package:
+**Dependency package for [Plugin.Maui.Intercom](https://www.nuget.org/packages/Plugin.Maui.Intercom); do not reference directly.** Install the main package instead:
 
 ```bash
 dotnet add package Plugin.Maui.Intercom
 ```
 
-## Included Components
+## Included components
 
-- Intercom SDK Base (18.7.0)
-- Intercom SDK UI (18.7.0)
-- Intercom SDK Light Compressor (18.7.0)
+- Intercom SDK Base (18.8.0)
+- Intercom SDK UI (18.8.0)
+- Intercom SDK Light Compressor (18.8.0)
 - Coil image loading library (2.7.0)
-- Various AndroidX and Compose dependencies
+- AndroidX and Compose dependencies
+
+## Platform
+
+- Target frameworks: `net9.0-android` and `net10.0-android`
+- Minimum Android: 6.0 (API 23)
 
 ## License
 
 MIT License - Copyright © kfrancis
 
-For more information, visit: https://github.com/kfrancis/Plugin.Maui.Intercom
+More information: https://github.com/kfrancis/Plugin.Maui.Intercom
