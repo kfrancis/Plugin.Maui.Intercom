@@ -1,5 +1,3 @@
-using Plugin.Maui.Intercom;
-
 namespace Plugin.Maui.Intercom.Tests;
 
 /// <summary>
@@ -14,20 +12,28 @@ public sealed class IntercomContentTests
     [Test]
     [Arguments("")]
     [Arguments("   ")]
-    public async Task ArticleRejectsBlankId(string id) =>
+    public async Task ArticleRejectsBlankId(string id)
+    {
         await Assert.That(() => new IntercomContent.Article(id)).Throws<ArgumentException>();
+    }
 
     [Test]
-    public async Task ArticleRejectsNullId() =>
+    public async Task ArticleRejectsNullId()
+    {
         await Assert.That(() => new IntercomContent.Article(null!)).Throws<ArgumentException>();
+    }
 
     [Test]
-    public async Task HelpCenterCollectionsRejectsAnEmptyList() =>
+    public async Task HelpCenterCollectionsRejectsAnEmptyList()
+    {
         await Assert.That(() => new IntercomContent.HelpCenterCollections([])).Throws<ArgumentException>();
+    }
 
     [Test]
-    public async Task HelpCenterCollectionsRejectsABlankIdInTheList() =>
+    public async Task HelpCenterCollectionsRejectsABlankIdInTheList()
+    {
         await Assert.That(() => new IntercomContent.HelpCenterCollections(["good", ""])).Throws<ArgumentException>();
+    }
 
     [Test]
     public async Task HelpCenterCollectionsCopiesTheList()
@@ -36,7 +42,7 @@ public sealed class IntercomContentTests
         var content = new IntercomContent.HelpCenterCollections(ids);
         ids.Add("c");
 
-        // Presenting content must not depend on what the caller does to their list afterwards.
+        // Presenting content must not depend on what the caller does to their list afterward.
         await Assert.That(content.Ids.Count).IsEqualTo(2);
     }
 
@@ -52,20 +58,28 @@ public sealed class IntercomContentTests
 public sealed class IntercomUserAttributesTests
 {
     [Test]
-    public async Task HasIdentifierIsFalseWhenNeitherIdentifierIsSet() =>
+    public async Task HasIdentifierIsFalseWhenNeitherIdentifierIsSet()
+    {
         await Assert.That(new IntercomUserAttributes { Name = "Bob" }.HasIdentifier).IsFalse();
+    }
 
     [Test]
-    public async Task HasIdentifierIsTrueForAUserId() =>
+    public async Task HasIdentifierIsTrueForAUserId()
+    {
         await Assert.That(new IntercomUserAttributes { UserId = "42" }.HasIdentifier).IsTrue();
+    }
 
     [Test]
-    public async Task HasIdentifierIsTrueForAnEmail() =>
+    public async Task HasIdentifierIsTrueForAnEmail()
+    {
         await Assert.That(new IntercomUserAttributes { Email = "bob@example.com" }.HasIdentifier).IsTrue();
+    }
 
     [Test]
-    public async Task HasIdentifierIgnoresEmptyStrings() =>
+    public async Task HasIdentifierIgnoresEmptyStrings()
+    {
         await Assert.That(new IntercomUserAttributes { UserId = "", Email = "" }.HasIdentifier).IsFalse();
+    }
 
     [Test]
     public async Task CollectionsStartEmptyRatherThanNull()

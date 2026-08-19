@@ -1,5 +1,4 @@
 using System.Reflection;
-using Plugin.Maui.Intercom;
 
 namespace Plugin.Maui.Intercom.Tests;
 

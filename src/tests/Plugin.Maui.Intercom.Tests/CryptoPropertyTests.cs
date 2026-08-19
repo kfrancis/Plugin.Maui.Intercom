@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CsCheck;
-using Plugin.Maui.Intercom;
 
 namespace Plugin.Maui.Intercom.Tests;
 
@@ -16,17 +15,16 @@ public sealed class CryptoPropertyTests
 {
     // Alphanumeric so identifiers and secrets are never whitespace-only (which the methods
     // reject by contract) and the round-trip is about the crypto, not input validation.
-    private static readonly Gen<string> Text = Gen.String[Gen.Char.AlphaNumeric, 1, 24];
+    private static readonly Gen<string> s_text = Gen.String[Gen.Char.AlphaNumeric, 1, 24];
 
     [Test]
     public void JwtRoundTripsAndVerifies() =>
-        Gen.Select(Text, Text, Text, Gen.Int[1, 86_400])
+        s_text.Select(s_text, s_text, Gen.Int[1, 86_400])
             .Sample((secret, userId, email, lifetimeSeconds) =>
             {
                 var options = new IntercomOptions
                 {
-                    AndroidSecret = secret,
-                    PlatformOverride = IntercomPlatform.Android
+                    AndroidSecret = secret, PlatformOverride = IntercomPlatform.Android
                 };
 
                 var jwt = options.ComputeUserJwt(userId, email, TimeSpan.FromSeconds(lifetimeSeconds));
@@ -63,13 +61,9 @@ public sealed class CryptoPropertyTests
 
     [Test]
     public void UserHashIsDeterministicAndMatchesHmac() =>
-        Gen.Select(Text, Text).Sample((secret, identifier) =>
+        s_text.Select(s_text).Sample((secret, identifier) =>
         {
-            var options = new IntercomOptions
-            {
-                AndroidSecret = secret,
-                PlatformOverride = IntercomPlatform.Android
-            };
+            var options = new IntercomOptions { AndroidSecret = secret, PlatformOverride = IntercomPlatform.Android };
 
             var first = options.ComputeUserHash(identifier);
             var second = options.ComputeUserHash(identifier);

@@ -16,19 +16,22 @@ namespace Plugin.Maui.Intercom.Tests;
 /// </remarks>
 public sealed class IntercomOptionsTests
 {
-    private static IntercomOptions Configured(IntercomPlatform platform) => new()
+    private static IntercomOptions Configured(IntercomPlatform platform)
     {
-        PlatformOverride = platform,
-        AppId = "app-id",
-        AndroidApiKey = "android-key",
-        IosApiKey = "ios-key",
-        AndroidSecret = "droid-secret",
-        IosSecret = "ios-secret"
-    };
+        return new IntercomOptions
+        {
+            PlatformOverride = platform,
+            AppId = "app-id",
+            AndroidApiKey = "android-key",
+            IosApiKey = "ios-key",
+            AndroidSecret = "droid-secret",
+            IosSecret = "ios-secret"
+        };
+    }
 
     [Test]
     [Arguments(IntercomPlatform.Android, "android-key", "droid-secret")]
-    [Arguments(IntercomPlatform.IOS, "ios-key", "ios-secret")]
+    [Arguments(IntercomPlatform.Ios, "ios-key", "ios-secret")]
     public async Task ResolvesTheRunningPlatformsCredentials(IntercomPlatform platform, string apiKey, string secret)
     {
         var options = Configured(platform);
@@ -53,7 +56,7 @@ public sealed class IntercomOptionsTests
     {
         var noAppId = Configured(IntercomPlatform.Android);
         noAppId.AppId = "   ";
-        var noKey = Configured(IntercomPlatform.IOS);
+        var noKey = Configured(IntercomPlatform.Ios);
         noKey.IosApiKey = null;
 
         await Assert.That(noAppId.HasCredentials).IsFalse();
@@ -64,9 +67,11 @@ public sealed class IntercomOptionsTests
 
     [Test]
     [Arguments(IntercomPlatform.Android, "10aaa850ea81f66158a0e2c7701ce4f9bd53a779773278f1dcfbc1d357b69765")]
-    [Arguments(IntercomPlatform.IOS, "7915788c007d61f378b75c0f1a0da9bb7178f13514ec2a2aa0e2a5fbb666ce71")]
-    public async Task ComputeUserHashUsesThePlatformSecret(IntercomPlatform platform, string expected) =>
+    [Arguments(IntercomPlatform.Ios, "7915788c007d61f378b75c0f1a0da9bb7178f13514ec2a2aa0e2a5fbb666ce71")]
+    public async Task ComputeUserHashUsesThePlatformSecret(IntercomPlatform platform, string expected)
+    {
         await Assert.That(Configured(platform).ComputeUserHash("user@example.com")).IsEqualTo(expected);
+    }
 
     [Test]
     public async Task ComputeUserHashWithoutASecretSaysWhichPropertyToSet()
@@ -81,7 +86,7 @@ public sealed class IntercomOptionsTests
     [Test]
     public async Task ComputeUserJwtSignsThePayloadWithThePlatformSecret()
     {
-        var options = Configured(IntercomPlatform.IOS);
+        var options = Configured(IntercomPlatform.Ios);
 
         var jwt = options.ComputeUserJwt("user-123", "user@example.com");
         var (header, payload, _) = Decode(jwt);
@@ -98,10 +103,13 @@ public sealed class IntercomOptionsTests
     public async Task ComputeUserJwtExpiresAnHourOutByDefault()
     {
         var (_, byDefault, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123"));
-        var (_, explicitly, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123", lifetime: TimeSpan.FromMinutes(5)));
+        var (_, explicitly, _) = Decode(Configured(IntercomPlatform.Android)
+            .ComputeUserJwt("user-123", lifetime: TimeSpan.FromMinutes(5)));
 
-        await Assert.That(byDefault.GetProperty("exp").GetInt64() - byDefault.GetProperty("iat").GetInt64()).IsEqualTo(3600);
-        await Assert.That(explicitly.GetProperty("exp").GetInt64() - explicitly.GetProperty("iat").GetInt64()).IsEqualTo(300);
+        await Assert.That(byDefault.GetProperty("exp").GetInt64() - byDefault.GetProperty("iat").GetInt64())
+            .IsEqualTo(3600);
+        await Assert.That(explicitly.GetProperty("exp").GetInt64() - explicitly.GetProperty("iat").GetInt64())
+            .IsEqualTo(300);
     }
 
     [Test]
@@ -117,14 +125,15 @@ public sealed class IntercomOptionsTests
     public async Task ComputeUserJwtCarriesAdditionalClaims()
     {
         var stamp = DateTimeOffset.FromUnixTimeSeconds(1_700_000_000);
-        var (_, payload, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?>
-        {
-            ["sensitive_attribute1"] = "medical-record-42",
-            ["plan_tier"] = 3,
-            ["is_beta_tester"] = true,
-            ["signed_up_at"] = stamp,
-            ["absent"] = null
-        }));
+        var (_, payload, _) = Decode(Configured(IntercomPlatform.Android).ComputeUserJwt("user-123",
+            additionalClaims: new Dictionary<string, object?>
+            {
+                ["sensitive_attribute1"] = "medical-record-42",
+                ["plan_tier"] = 3,
+                ["is_beta_tester"] = true,
+                ["signed_up_at"] = stamp,
+                ["absent"] = null
+            }));
 
         await Assert.That(payload.GetProperty("sensitive_attribute1").GetString()).IsEqualTo("medical-record-42");
         await Assert.That(payload.GetProperty("plan_tier").GetInt32()).IsEqualTo(3);
@@ -139,17 +148,21 @@ public sealed class IntercomOptionsTests
         var options = Configured(IntercomPlatform.Android);
 
         await Assert.That(() => options.ComputeUserJwt()).Throws<ArgumentException>();
-        await Assert.That(() => options.ComputeUserJwt("user-123", lifetime: TimeSpan.Zero)).Throws<ArgumentOutOfRangeException>();
-        await Assert.That(() => options.ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?> { ["exp"] = 1 }))
+        await Assert.That(() => options.ComputeUserJwt("user-123", lifetime: TimeSpan.Zero))
+            .Throws<ArgumentOutOfRangeException>();
+        await Assert.That(() =>
+                options.ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?> { ["exp"] = 1 }))
             .Throws<ArgumentException>();
-        await Assert.That(() => options.ComputeUserJwt("user-123", additionalClaims: new Dictionary<string, object?> { ["thing"] = new object() }))
+        await Assert.That(() =>
+                options.ComputeUserJwt("user-123",
+                    additionalClaims: new Dictionary<string, object?> { ["thing"] = new() }))
             .Throws<ArgumentException>();
     }
 
     [Test]
     public async Task ComputeUserJwtWithoutASecretThrows()
     {
-        var options = Configured(IntercomPlatform.IOS);
+        var options = Configured(IntercomPlatform.Ios);
         options.IosSecret = null;
 
         await Assert.That(() => options.ComputeUserJwt("user-123")).Throws<InvalidOperationException>();
@@ -158,16 +171,17 @@ public sealed class IntercomOptionsTests
     [Test]
     public async Task BindReadsEveryKey()
     {
-        var options = new IntercomOptions { PlatformOverride = IntercomPlatform.Android }.Bind(Configuration(new()
-        {
-            ["AppId"] = "bound-app",
-            ["AndroidApiKey"] = "bound-android",
-            ["IosApiKey"] = "bound-ios",
-            ["AndroidSecret"] = "bound-droid-secret",
-            ["IosSecret"] = "bound-ios-secret",
-            ["LogLevel"] = "verbose",
-            ["AutoInitialize"] = "false"
-        }));
+        var options = new IntercomOptions { PlatformOverride = IntercomPlatform.Android }.Bind(Configuration(
+            new Dictionary<string, string?>
+            {
+                ["AppId"] = "bound-app",
+                ["AndroidApiKey"] = "bound-android",
+                ["IosApiKey"] = "bound-ios",
+                ["AndroidSecret"] = "bound-droid-secret",
+                ["IosSecret"] = "bound-ios-secret",
+                ["LogLevel"] = "verbose",
+                ["AutoInitialize"] = "false"
+            }));
 
         await Assert.That(options.AppId).IsEqualTo("bound-app");
         await Assert.That(options.ApiKey).IsEqualTo("bound-android");
@@ -184,7 +198,7 @@ public sealed class IntercomOptionsTests
         // A checked-in appsettings.json with empty placeholders must not wipe out credentials
         // supplied by the configure delegate.
         var options = new IntercomOptions { AndroidApiKey = "from-code", AppId = "from-code" }
-            .Bind(Configuration(new() { ["AndroidApiKey"] = "", ["AppId"] = "  " }));
+            .Bind(Configuration(new Dictionary<string, string?> { ["AndroidApiKey"] = "", ["AppId"] = "  " }));
 
         await Assert.That(options.AndroidApiKey).IsEqualTo("from-code");
         await Assert.That(options.AppId).IsEqualTo("from-code");
@@ -193,23 +207,27 @@ public sealed class IntercomOptionsTests
     [Test]
     public async Task BindRejectsAnUnparseableValue()
     {
-        await Assert.That(() => new IntercomOptions().Bind(Configuration(new() { ["LogLevel"] = "chatty" })))
+        await Assert.That(() =>
+                new IntercomOptions().Bind(Configuration(new Dictionary<string, string?> { ["LogLevel"] = "chatty" })))
             .Throws<ArgumentException>();
 
-        await Assert.That(() => new IntercomOptions().Bind(Configuration(new() { ["AutoInitialize"] = "maybe" })))
+        await Assert.That(() =>
+                new IntercomOptions().Bind(
+                    Configuration(new Dictionary<string, string?> { ["AutoInitialize"] = "maybe" })))
             .Throws<ArgumentException>();
     }
 
     [Test]
     public async Task InitializeAppliesTheLogLevelBeforeTheApiKey()
     {
-        var options = Configured(IntercomPlatform.IOS);
+        var options = Configured(IntercomPlatform.Ios);
         options.LogLevel = IntercomLogLevel.Warn;
         var intercom = new RecordingIntercom();
 
         await Assert.That(intercom.Initialize(options)).IsTrue();
 
-        await Assert.That(intercom.Calls).IsEquivalentTo(new List<string> { "EnableLogging(Warn)", "Initialize(ios-key, app-id)" });
+        await Assert.That(intercom.Calls)
+            .IsEquivalentTo(new List<string> { "EnableLogging(Warn)", "Initialize(ios-key, app-id)" });
         await Assert.That(options.IsInitialized).IsTrue();
     }
 
@@ -263,11 +281,13 @@ public sealed class IntercomOptionsTests
             Encoding.UTF8.GetBytes(secret),
             Encoding.ASCII.GetBytes(jwt[..lastDot]));
 
-        return CryptographicOperations.FixedTimeEquals(expected, Base64Url.DecodeFromChars(jwt[(lastDot + 1)..]));
+        return CryptographicOperations.FixedTimeEquals(expected, Base64Url.DecodeFromChars(jwt.AsSpan()[(lastDot + 1)..]));
     }
 
-    private static IConfiguration Configuration(Dictionary<string, string?> values) =>
-        new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+    private static IConfiguration Configuration(Dictionary<string, string?> values)
+    {
+        return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+    }
 
     /// <summary>
     ///     Records the two lifecycle calls the initializer is allowed to make; everything else
@@ -277,15 +297,30 @@ public sealed class IntercomOptionsTests
     {
         public List<string> Calls { get; } = [];
 
-        public void Initialize(string apiKey, string appId) => Calls.Add($"Initialize({apiKey}, {appId})");
+        public void Initialize(string apiKey, string appId)
+        {
+            Calls.Add($"Initialize({apiKey}, {appId})");
+        }
 
-        public void EnableLogging(IntercomLogLevel level = IntercomLogLevel.Verbose) => Calls.Add($"EnableLogging({level})");
+        public void EnableLogging(IntercomLogLevel level = IntercomLogLevel.Verbose)
+        {
+            Calls.Add($"EnableLogging({level})");
+        }
 
-        public bool IsSupported => throw new NotSupportedException();
+        public bool IsSupported
+        {
+            get => throw new NotSupportedException();
+        }
 
-        public bool IsUserLoggedIn => throw new NotSupportedException();
+        public bool IsUserLoggedIn
+        {
+            get => throw new NotSupportedException();
+        }
 
-        public int UnreadConversationCount => throw new NotSupportedException();
+        public int UnreadConversationCount
+        {
+            get => throw new NotSupportedException();
+        }
 
         public event EventHandler<int> UnreadConversationCountChanged
         {
@@ -293,56 +328,138 @@ public sealed class IntercomOptionsTests
             remove => throw new NotSupportedException();
         }
 
-        public IObservable<int> UnreadConversationCounts => throw new NotSupportedException();
+        public IObservable<int> UnreadConversationCounts
+        {
+            get => throw new NotSupportedException();
+        }
 
-        public void ChangeWorkspace(string apiKey, string appId) => throw new NotSupportedException();
+        public void ChangeWorkspace(string apiKey, string appId)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task LoginUnidentifiedUserAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task LoginUnidentifiedUserAsync(CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task LoginUserAsync(IntercomUserAttributes attributes, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task LoginUserAsync(IntercomUserAttributes attributes, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task UpdateUserAsync(IntercomUserAttributes attributes, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task UpdateUserAsync(IntercomUserAttributes attributes, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task SetAuthTokensAsync(IReadOnlyDictionary<string, string> tokens, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task SetAuthTokensAsync(IReadOnlyDictionary<string, string> tokens,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetUserHash(string userHash) => throw new NotSupportedException();
+        public void SetUserHash(string userHash)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetUserJwt(string jwt) => throw new NotSupportedException();
+        public void SetUserJwt(string jwt)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void Logout() => throw new NotSupportedException();
+        public void Logout()
+        {
+            throw new NotSupportedException();
+        }
 
-        public IntercomUserAttributes? FetchLoggedInUserAttributes() => throw new NotSupportedException();
+        public IntercomUserAttributes? FetchLoggedInUserAttributes()
+        {
+            throw new NotSupportedException();
+        }
 
-        public void LogEvent(string name, IReadOnlyDictionary<string, object?>? metadata = null) => throw new NotSupportedException();
+        public void LogEvent(string name, IReadOnlyDictionary<string, object?>? metadata = null)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void Present(IntercomSpace space = IntercomSpace.Home) => throw new NotSupportedException();
+        public void Present(IntercomSpace space = IntercomSpace.Home)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void PresentContent(IntercomContent content) => throw new NotSupportedException();
+        public void PresentContent(IntercomContent content)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void PresentMessageComposer(string? initialMessage = null) => throw new NotSupportedException();
+        public void PresentMessageComposer(string? initialMessage = null)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void HideIntercom() => throw new NotSupportedException();
+        public void HideIntercom()
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetLauncherVisible(bool visible) => throw new NotSupportedException();
+        public void SetLauncherVisible(bool visible)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetInAppMessagesVisible(bool visible) => throw new NotSupportedException();
+        public void SetInAppMessagesVisible(bool visible)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types) => throw new NotSupportedException();
+        public void SuppressProactiveContent(IReadOnlyList<IntercomProactiveContentType> types)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetBottomPaddingDp(double bottomPaddingDp) => throw new NotSupportedException();
+        public void SetBottomPaddingDp(double bottomPaddingDp)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void SetThemeMode(IntercomThemeMode mode) => throw new NotSupportedException();
+        public void SetThemeMode(IntercomThemeMode mode)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<IReadOnlyList<HelpCenterCollection>> FetchHelpCenterCollectionsAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<HelpCenterCollection>> FetchHelpCenterCollectionsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<HelpCenterCollectionContent> FetchHelpCenterCollectionAsync(string collectionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<HelpCenterCollectionContent> FetchHelpCenterCollectionAsync(string collectionId,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task<IReadOnlyList<HelpCenterArticleSearchResult>> SearchHelpCenterAsync(string searchTerm, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<HelpCenterArticleSearchResult>> SearchHelpCenterAsync(string searchTerm,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public Task SendPushTokenToIntercomAsync(string token, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task SendPushTokenToIntercomAsync(string token, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
 
-        public bool IsIntercomPush(IReadOnlyDictionary<string, string> payload) => throw new NotSupportedException();
+        public bool IsIntercomPush(IReadOnlyDictionary<string, string> payload)
+        {
+            throw new NotSupportedException();
+        }
 
-        public void HandlePush(IReadOnlyDictionary<string, string> payload) => throw new NotSupportedException();
+        public void HandlePush(IReadOnlyDictionary<string, string> payload)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

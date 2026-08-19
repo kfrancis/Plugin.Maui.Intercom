@@ -1,5 +1,4 @@
 using CsCheck;
-using Plugin.Maui.Intercom;
 
 namespace Plugin.Maui.Intercom.Tests;
 
@@ -13,7 +12,7 @@ public sealed class UnreadConversationCountObservableTests
     [Test]
     public async Task ReplaysCurrentValueOnSubscribe()
     {
-        var (observable, _) = Build(currentCount: 7);
+        var (observable, _) = Build(7);
         var received = new List<int>();
 
         using var subscription = observable.Subscribe(new DelegateObserver(received.Add));
@@ -24,7 +23,7 @@ public sealed class UnreadConversationCountObservableTests
     [Test]
     public async Task PushesSubsequentChanges()
     {
-        var (observable, raise) = Build(currentCount: 0);
+        var (observable, raise) = Build(0);
         var received = new List<int>();
 
         using var subscription = observable.Subscribe(new DelegateObserver(received.Add));
@@ -76,7 +75,7 @@ public sealed class UnreadConversationCountObservableTests
     [Test]
     public async Task DoubleDisposeUnsubscribesOnce()
     {
-        var (observable, _) = Build(currentCount: 0);
+        var (observable, _) = Build(0);
         var received = new List<int>();
         var subscription = observable.Subscribe(new DelegateObserver(received.Add));
 
@@ -87,7 +86,8 @@ public sealed class UnreadConversationCountObservableTests
     }
 
     [Test]
-    public void SurvivesConcurrentSubscribeAndDispose() =>
+    public void SurvivesConcurrentSubscribeAndDispose()
+    {
         // Many threads churning subscribe/dispose must leave the native listener detached and
         // must never have it attached more than once: the observable's lock is what guarantees
         // the 0->1 and 1->0 transitions are the only ones that touch it.
@@ -119,6 +119,7 @@ public sealed class UnreadConversationCountObservableTests
 
             return Volatile.Read(ref attached) == 0 && maxAttached <= 1;
         });
+    }
 
     // Returns the observable plus a delegate that raises a count change through whatever
     // handler is currently attached.
@@ -138,6 +139,9 @@ public sealed class UnreadConversationCountObservableTests
 
         public void OnError(Exception error) { }
 
-        public void OnNext(int value) => onNext(value);
+        public void OnNext(int value)
+        {
+            onNext(value);
+        }
     }
 }

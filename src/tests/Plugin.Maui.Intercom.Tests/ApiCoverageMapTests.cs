@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using Plugin.Maui.Intercom;
 
 namespace Plugin.Maui.Intercom.Tests;
 
@@ -109,8 +108,8 @@ public sealed class ApiCoverageMapTests
             return FindType(assembly, reference) is not null;
         }
 
-        const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy;
-        return type.GetMember(memberName, flags).Length > 0
+        const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+        return type.GetMember(memberName, Flags).Length > 0
                || type.GetNestedType(memberName, BindingFlags.Public) is not null;
     }
 

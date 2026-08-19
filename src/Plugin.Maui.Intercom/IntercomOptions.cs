@@ -20,7 +20,7 @@ public enum IntercomPlatform
     Android = 1,
 
     /// <summary>iOS (and Mac Catalyst, which uses the iOS credentials).</summary>
-    IOS = 2
+    Ios = 2
 }
 
 /// <summary>
@@ -108,7 +108,7 @@ public sealed class IntercomOptions
     /// </summary>
     public static IntercomPlatform CurrentPlatform =>
         OperatingSystem.IsAndroid() ? IntercomPlatform.Android
-        : OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst() ? IntercomPlatform.IOS
+        : OperatingSystem.IsIOS() || OperatingSystem.IsMacCatalyst() ? IntercomPlatform.Ios
         : IntercomPlatform.Unsupported;
 
     /// <summary>
@@ -152,7 +152,7 @@ public sealed class IntercomOptions
     public string? ApiKeyFor(IntercomPlatform platform) => platform switch
     {
         IntercomPlatform.Android => AndroidApiKey,
-        IntercomPlatform.IOS => IosApiKey,
+        IntercomPlatform.Ios => IosApiKey,
         _ => null
     };
 
@@ -163,7 +163,7 @@ public sealed class IntercomOptions
     public string? SecretFor(IntercomPlatform platform) => platform switch
     {
         IntercomPlatform.Android => AndroidSecret,
-        IntercomPlatform.IOS => IosSecret,
+        IntercomPlatform.Ios => IosSecret,
         _ => null
     };
 
@@ -252,7 +252,7 @@ public sealed class IntercomOptions
         {
             foreach (var claim in additionalClaims.Keys)
             {
-                if (ReservedClaims.Contains(claim))
+                if (s_reservedClaims.Contains(claim))
                 {
                     throw new ArgumentException(
                         $"'{claim}' is written by {nameof(ComputeUserJwt)} itself. Pass it through the {nameof(userId)}, {nameof(email)} or {nameof(lifetime)} parameters instead.",
@@ -290,7 +290,7 @@ public sealed class IntercomOptions
             writer.WriteEndObject();
         }
 
-        var signingInput = Encoding.ASCII.GetBytes($"{JwtHeader}.{Base64Url.EncodeToString(payload.WrittenSpan)}");
+        var signingInput = Encoding.ASCII.GetBytes($"{s_jwtHeader}.{Base64Url.EncodeToString(payload.WrittenSpan)}");
         var signature = HMACSHA256.HashData(Encoding.UTF8.GetBytes(secret), signingInput);
 
         return $"{Encoding.ASCII.GetString(signingInput)}.{Base64Url.EncodeToString(signature)}";
@@ -372,11 +372,11 @@ public sealed class IntercomOptions
     ///     Claims <see cref="ComputeUserJwt" /> writes itself, so a caller cannot end up with a
     ///     token carrying two of any of them.
     /// </summary>
-    private static readonly HashSet<string> ReservedClaims =
+    private static readonly HashSet<string> s_reservedClaims =
         new(["user_id", "email", "iat", "exp"], StringComparer.Ordinal);
 
     /// <summary>The fixed <c>{"alg":"HS256","typ":"JWT"}</c> header, already Base64Url encoded.</summary>
-    private static readonly string JwtHeader = Base64Url.EncodeToString("""{"alg":"HS256","typ":"JWT"}"""u8);
+    private static readonly string s_jwtHeader = Base64Url.EncodeToString("""{"alg":"HS256","typ":"JWT"}"""u8);
 
     private static void WriteClaim(Utf8JsonWriter writer, string name, object? value)
     {
