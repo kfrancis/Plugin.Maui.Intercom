@@ -364,10 +364,13 @@
     <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.8.0.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\nexus-client-android-6.4.0.aar" />
     <AndroidLibrary Include="Jars\nexus-client-android-6.4.0.aar" Bind="false" Visible="false" />
-    <!-- androidx.paging:paging-compose has no Xamarin.AndroidX binding, so it is vendored.
-         From 3.4.x the artifact is a KMP facade whose Android classes live in the sibling
-         paging-compose-android, which is what has to be vendored — the facade AAR carries
-         nothing but a manifest and a licence. -->
+    <!-- androidx.paging:paging-common and paging-compose have no Xamarin.AndroidX binding
+         for their Android-variant classes. From 3.3.x both are KMP facades: the facade AAR
+         carries only a manifest/licence stub; the actual JVM bytecode lives in the sibling
+         *-android artifact.  Pager, PagingData, PagingSource, etc. are in paging-common-android;
+         the Compose integration classes are in paging-compose-android. -->
+    <AndroidLibrary Remove="Jars\androidx.paging.paging-common-android-3.4.1.aar" />
+    <AndroidLibrary Include="Jars\androidx.paging.paging-common-android-3.4.1.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\paging-compose-android-3.4.1.aar" />
     <AndroidLibrary Include="Jars\paging-compose-android-3.4.1.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\twig-1.3.0.aar" />
