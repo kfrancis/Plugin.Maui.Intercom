@@ -23,6 +23,10 @@
                 Text="Plugin.Maui.Intercom smoke test" />
 
             <Label
+                x:Name="SupportLabel"
+                Text="Platform support: —" />
+
+            <Label
                 x:Name="StatusLabel"
                 FontAttributes="Bold"
                 Text="Not initialized" />

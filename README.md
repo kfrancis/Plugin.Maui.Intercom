@@ -127,6 +127,7 @@ Async members return a `Task` that faults with `IntercomException`, which carrie
 
 | Member | Android | iOS |
 | --- | :---: | :---: |
+| `IsSupported` | ✅ | ✅ |
 | `Initialize(apiKey, appId)` | ✅ | ✅ |
 | `ChangeWorkspace(apiKey, appId)` | ✅ | — |
 | `EnableLogging(level)` | ✅ | on/off only |
@@ -151,6 +152,7 @@ Async members return a `Task` that faults with `IntercomException`, which carrie
 | `SetThemeMode(mode)` | ✅ | session only |
 | `UnreadConversationCount` | ✅ | ✅ |
 | `UnreadConversationCountChanged` | ✅ | ✅ |
+| `UnreadConversationCounts` (`IObservable<int>`) | ✅ | ✅ |
 | `FetchHelpCenterCollectionsAsync()` | ✅ | ✅ |
 | `FetchHelpCenterCollectionAsync(id)` | ✅ | ✅ |
 | `SearchHelpCenterAsync(term)` | ✅ | ✅ |
@@ -334,7 +336,14 @@ Metadata values must be strings, numbers, booleans or dates. Types are preserved
 ```csharp
 badge.Text = Intercom.Default.UnreadConversationCount.ToString();
 
+// The event…
 Intercom.Default.UnreadConversationCountChanged += (_, count) => badge.Text = count.ToString();
+
+// …or the observable, for MVVM. It replays the current count immediately on subscribe, so
+// there is no separate initial read, and it composes (throttle, DistinctUntilChanged, bind).
+// Dispose the subscription to unsubscribe.
+_subscription = Intercom.Default.UnreadConversationCounts
+    .Subscribe(count => badge.Text = count.ToString());
 ```
 
 The native listener is only attached while at least one handler is subscribed.
@@ -406,6 +415,8 @@ public class MyViewModel
 ```
 
 The registered `IIntercom` is the same object as `Intercom.Default`, so the two styles can be mixed.
+
+For tests, `Intercom.SetDefault(fake)` swaps the implementation behind the static `Intercom.Default` accessor — set a fake in setup and reset it with `Intercom.SetDefault(null)` in teardown. Injected `IIntercom` is already mockable through DI; this covers code that reaches for the static instead.
 
 ## Architecture
 

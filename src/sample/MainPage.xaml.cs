@@ -24,6 +24,7 @@ public partial class MainPage : ContentPage
 
     private readonly IntercomOptions _options;
     private bool _subscribed;
+    private IDisposable? _unreadSubscription;
 
     public MainPage(IntercomOptions options)
     {
@@ -33,6 +34,10 @@ public partial class MainPage : ContentPage
         SpacePicker.ItemsSource = s_spaces.Select(space => space.ToString()).ToList();
         ContentTypePicker.ItemsSource = s_contentTypes.ToList();
         ThemePicker.ItemsSource = s_themeModes.Select(mode => mode.ToString()).ToList();
+
+        // IsSupported answers without initializing and without throwing on desktop hosts —
+        // it is how a consumer decides whether to wire up its support UI at all.
+        SupportLabel.Text = $"Platform support: {(Intercom.IsSupported ? "available" : "unavailable")}";
     }
 
     private static IIntercom Intercom => Ioc.Default.GetRequiredService<IIntercom>();
@@ -60,7 +65,34 @@ public partial class MainPage : ContentPage
         }
 
         Intercom.UnreadConversationCountChanged += OnUnreadCountChanged;
+
+        // The observable is the reactive alternative to the event: it replays the current
+        // count immediately on subscribe, so the label is correct without a separate read.
+        _unreadSubscription = Intercom.UnreadConversationCounts.Subscribe(
+            new CountObserver(count => OnUnreadCountChanged(this, count)));
+
         _subscribed = true;
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _unreadSubscription?.Dispose();
+        _unreadSubscription = null;
+        if (_subscribed)
+        {
+            Intercom.UnreadConversationCountChanged -= OnUnreadCountChanged;
+            _subscribed = false;
+        }
+    }
+
+    private sealed class CountObserver(Action<int> onNext) : IObserver<int>
+    {
+        public void OnCompleted() { }
+
+        public void OnError(Exception error) { }
+
+        public void OnNext(int value) => onNext(value);
     }
 
     // Every handler funnels through here so a native failure shows up in the status label
