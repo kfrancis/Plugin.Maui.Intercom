@@ -18,7 +18,7 @@ public sealed class IntercomOptionsPropertyTests
         Gen.Long.Select(value => (object?)value),
         Gen.Double.Where(double.IsFinite).Select(value => (object?)value),
         Gen.DateTimeOffset.Select(value => (object?)value),
-        Gen.Const<object?>(null));
+        Gen.Const<object?>(static () => null));
 
     [Test]
     public void JwtPreservesGeneratedAdditionalClaimsAndVerifiesSignature() =>
@@ -44,8 +44,9 @@ public sealed class IntercomOptionsPropertyTests
 
     [Test]
     public void BindMergesGeneratedNonBlankValues() =>
-        s_text.Select(s_text, s_text).Sample((initial, configured) =>
+        s_text.Select(s_text).Sample(values =>
         {
+            var (initial, configured) = values;
             var options = new IntercomOptions { AppId = initial, AndroidApiKey = initial };
             var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             {

@@ -4,7 +4,11 @@
          iOS assets carry the native implementation. See the TFM matrix note in
          Directory.Build.props. The platform-specific source globs key off the platform part
          of the TFM, not the band. -->
-    <TargetFrameworks>$(IntercomPluginTargetFrameworks);$(IntercomCoreTargetFrameworks)</TargetFrameworks>
+    <!-- Tests and other platform-neutral consumers can override the full matrix without
+         restoring Android or iOS workloads. Package builds leave this empty and ship every
+         platform plus the plain .NET contract assets. -->
+    <TargetFrameworks Condition="'$(IntercomTargetFrameworks)' == ''">$(IntercomPluginTargetFrameworks);$(IntercomCoreTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IntercomTargetFrameworks)' != ''">$(IntercomTargetFrameworks)</TargetFrameworks>
 
     <SingleProject Condition="$(TargetFramework.Contains('-'))">true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
