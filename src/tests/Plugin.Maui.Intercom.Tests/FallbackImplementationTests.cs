@@ -6,11 +6,6 @@ namespace Plugin.Maui.Intercom.Tests;
 ///     Every <see cref="IIntercom" /> member must be present in the generic .NET fallback and
 ///     must throw rather than quietly do nothing.
 /// </summary>
-/// <remarks>
-///     The fallback is not compiled into the shipped package, so nothing else would notice a
-///     member that was added to the interface and forgotten here — until a unit-test host or
-///     design-time build picked it up and got a silent no-op.
-/// </remarks>
 public sealed class FallbackImplementationTests
 {
     [Test]

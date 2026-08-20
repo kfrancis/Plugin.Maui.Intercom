@@ -14,23 +14,8 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
   </PropertyGroup>
 
-  <!--
-    Plugin.Maui.Intercom only targets net10.0-android and net10.0-ios, so it cannot be
-    referenced from a plain net10.0 test project. Compiling its platform-neutral sources
-    directly is what makes the shared surface testable off-device: the models, the interface,
-    the static accessor, and the .net.cs fallback that every member must be present in.
-
-    Deliberately NOT included: *.android.cs and *.macios.cs. Everything they do is native
-    interop that only means anything on a device.
-  -->
   <ItemGroup>
-    <Compile Include="..\..\Plugin.Maui.Intercom\IIntercom.cs" Link="Shared\IIntercom.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\IntercomException.cs" Link="Shared\IntercomException.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.shared.cs" Link="Shared\Intercom.shared.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.Unread.shared.cs" Link="Shared\Intercom.Unread.shared.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\Intercom.net.cs" Link="Shared\Intercom.net.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\IntercomOptions.cs" Link="Shared\IntercomOptions.cs" />
-    <Compile Include="..\..\Plugin.Maui.Intercom\Models\*.cs" Link="Shared\Models\%(Filename)%(Extension)" />
+    <ProjectReference Include="..\..\Plugin.Maui.Intercom\Plugin.Maui.Intercom.csproj" />
   </ItemGroup>
 
   <!-- The coverage map is data under test; copy it next to the assembly. -->
