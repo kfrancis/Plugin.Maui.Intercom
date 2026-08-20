@@ -2,6 +2,7 @@ using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using CsCheck;
 using Microsoft.Extensions.Configuration;
 
 namespace Plugin.Maui.Intercom.Tests;
@@ -253,6 +254,21 @@ public sealed class IntercomOptionsTests
     }
 
     [Test]
+    public void InitializeRunsOnceUnderGeneratedContention() =>
+        Gen.Int[2, 32].Sample(workers =>
+        {
+            var options = Configured(IntercomPlatform.Android);
+            options.LogLevel = IntercomLogLevel.Warn;
+            var intercom = new RecordingIntercom();
+
+            Parallel.For(0, workers, _ => intercom.Initialize(options));
+
+            return options.IsInitialized
+                && intercom.Calls.Count(call => call.StartsWith("EnableLogging", StringComparison.Ordinal)) == 1
+                && intercom.Calls.Count(call => call.StartsWith("Initialize", StringComparison.Ordinal)) == 1;
+        });
+
+    [Test]
     public async Task InitializeWithoutCredentialsThrowsBeforeTouchingTheSdk()
     {
         var options = new IntercomOptions { PlatformOverride = IntercomPlatform.Android };
@@ -295,16 +311,24 @@ public sealed class IntercomOptionsTests
     /// </summary>
     private sealed class RecordingIntercom : IIntercom
     {
+        private readonly Lock _gate = new();
+
         public List<string> Calls { get; } = [];
 
         public void Initialize(string apiKey, string appId)
         {
-            Calls.Add($"Initialize({apiKey}, {appId})");
+            lock (_gate)
+            {
+                Calls.Add($"Initialize({apiKey}, {appId})");
+            }
         }
 
         public void EnableLogging(IntercomLogLevel level = IntercomLogLevel.Verbose)
         {
-            Calls.Add($"EnableLogging({level})");
+            lock (_gate)
+            {
+                Calls.Add($"EnableLogging({level})");
+            }
         }
 
         public bool IsSupported

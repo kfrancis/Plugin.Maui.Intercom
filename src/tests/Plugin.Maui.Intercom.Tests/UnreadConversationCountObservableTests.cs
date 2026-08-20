@@ -121,6 +121,53 @@ public sealed class UnreadConversationCountObservableTests
         });
     }
 
+    [Test]
+    public void GeneratedSubscriptionSequencesLeaveTheListenerDetached()
+    {
+        // 0 subscribes, 1 disposes the most recent active subscription, 2 raises a change.
+        Gen.Int[0, 2].Array[1, 128].Sample(operations =>
+        {
+            var attached = 0;
+            EventHandler<int>? handler = null;
+            var observable = new UnreadConversationCountObservable(
+                () => 0,
+                h =>
+                {
+                    attached++;
+                    handler += h;
+                },
+                h =>
+                {
+                    attached--;
+                    handler -= h;
+                });
+            var subscriptions = new Stack<IDisposable>();
+
+            foreach (var operation in operations)
+            {
+                switch (operation)
+                {
+                    case 0:
+                        subscriptions.Push(observable.Subscribe(new DelegateObserver(_ => { })));
+                        break;
+                    case 1 when subscriptions.TryPop(out var subscription):
+                        subscription.Dispose();
+                        break;
+                    case 2:
+                        handler?.Invoke(null, 1);
+                        break;
+                }
+            }
+
+            while (subscriptions.TryPop(out var subscription))
+            {
+                subscription.Dispose();
+            }
+
+            return attached == 0;
+        });
+    }
+
     // Returns the observable plus a delegate that raises a count change through whatever
     // handler is currently attached.
     private static (UnreadConversationCountObservable Observable, Action<int> Raise) Build(int currentCount)
