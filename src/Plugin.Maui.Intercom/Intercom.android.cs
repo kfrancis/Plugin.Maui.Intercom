@@ -1,4 +1,5 @@
 #if ANDROID
+using System.Text.Json;
 using Android.Runtime;
 using MauiIntercomAndroid;
 using Application = Android.App.Application;
@@ -31,6 +32,11 @@ partial class IntercomImplementation : IIntercom
         Application.Context as Application
         ?? throw new IntercomException(
             "No Android Application context is available yet. Call Initialize after the app's Application has been created.");
+
+    private static string? ReadString(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.String
+            ? value.GetString()
+            : null;
 
     // ── Capability ──────────────────────────────────────────────────────────
 
