@@ -50,6 +50,13 @@ public sealed class FallbackImplementationTests
         await Assert.That(Intercom.Default.IsSupported).IsFalse();
 
     [Test]
-    public async Task DefaultIsASingleton() =>
-        await Assert.That(Intercom.Default).IsSameReferenceAs(Intercom.Default);
+    public async Task DefaultIsASingleton()
+    {
+        var first = Intercom.Default;
+        var implementations = new IIntercom[64];
+
+        Parallel.For(0, implementations.Length, i => implementations[i] = Intercom.Default);
+
+        await Assert.That(implementations.All(implementation => ReferenceEquals(implementation, first))).IsTrue();
+    }
 }
