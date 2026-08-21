@@ -511,7 +511,7 @@ partial class IntercomImplementation : IIntercom
             }
 
             keys.Add(new NSString(key));
-            values.Add(ToNativeValue(value, key, paramName));
+            values.Add(ToNativeValue(IntercomMetadata.Normalize(value, key, paramName)));
         }
 
         return ([.. keys], [.. values]);
@@ -520,22 +520,19 @@ partial class IntercomImplementation : IIntercom
     // Intercom stores custom attributes and event metadata as typed values, so the NSObject
     // type has to match: sending "42" where a number is expected changes the attribute's
     // type on the workspace.
-    private static NSObject ToNativeValue(object value, string key, string paramName) => value switch
+    private static NSObject ToNativeValue(IntercomMetadataValue value) => value.Type switch
     {
-        string s => new NSString(s),
-        bool b => NSNumber.FromBoolean(b),
-        int i => NSNumber.FromInt32(i),
-        long l => NSNumber.FromInt64(l),
-        short s => NSNumber.FromInt16(s),
-        byte b => NSNumber.FromByte(b),
-        float f => NSNumber.FromFloat(f),
-        double d => NSNumber.FromDouble(d),
-        decimal m => NSNumber.FromDouble((double)m),
-        DateTimeOffset dto => (NSDate)dto.UtcDateTime,
-        DateTime dt => (NSDate)dt.ToUniversalTime(),
-        _ => throw new ArgumentException(
-            $"'{paramName}[\"{key}\"]' is a {value.GetType().Name}. Intercom accepts strings, numbers, booleans and dates.",
-            paramName)
+        IntercomMetadataType.String => new NSString((string)value.Value),
+        IntercomMetadataType.Boolean => NSNumber.FromBoolean((bool)value.Value),
+        IntercomMetadataType.Int32 => NSNumber.FromInt32((int)value.Value),
+        IntercomMetadataType.Int64 => NSNumber.FromInt64((long)value.Value),
+        IntercomMetadataType.Int16 => NSNumber.FromInt16((short)value.Value),
+        IntercomMetadataType.Byte => NSNumber.FromByte((byte)value.Value),
+        IntercomMetadataType.Single => NSNumber.FromFloat((float)value.Value),
+        IntercomMetadataType.Double => NSNumber.FromDouble((double)value.Value),
+        IntercomMetadataType.Decimal => NSNumber.FromDouble((double)(decimal)value.Value),
+        IntercomMetadataType.Timestamp => (NSDate)((DateTimeOffset)value.Value).UtcDateTime,
+        _ => throw new ArgumentOutOfRangeException(nameof(value))
     };
 
     private static NSData ParseHexToken(string token)

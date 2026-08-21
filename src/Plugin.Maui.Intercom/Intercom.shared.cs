@@ -2,6 +2,7 @@ namespace Plugin.Maui.Intercom;
 
 public static class Intercom
 {
+    private static readonly object s_defaultImplementationLock = new();
     private static IIntercom? s_defaultImplementation;
 
     /// <summary>
@@ -9,7 +10,13 @@ public static class Intercom
     /// </summary>
     public static IIntercom Default
     {
-        get => s_defaultImplementation ??= new IntercomImplementation();
+        get
+        {
+            lock (s_defaultImplementationLock)
+            {
+                return s_defaultImplementation ??= new IntercomImplementation();
+            }
+        }
     }
 
     /// <summary>
@@ -27,6 +34,9 @@ public static class Intercom
     /// </remarks>
     public static void SetDefault(IIntercom? implementation)
     {
-        s_defaultImplementation = implementation;
+        lock (s_defaultImplementationLock)
+        {
+            s_defaultImplementation = implementation;
+        }
     }
 }

@@ -4,10 +4,10 @@ namespace Plugin.Maui.Intercom;
 ///     Fallback for generic .NET target frameworks.
 /// </summary>
 /// <remarks>
-///     The shipped package only targets net10.0-android and net10.0-ios, so this type is not
-///     compiled into either. It exists so the library still builds when someone multi-targets
-///     a plain net10.0 TFM (unit-test hosts, design-time builds). Every member throws rather
-///     than silently doing nothing — a no-op here reads as "Intercom is broken" at runtime.
+///     This is the implementation selected by a plain .NET target such as a core library,
+///     unit-test host or design-time build. It is deliberately not selected by Android or iOS
+///     applications. Every member throws rather than silently doing nothing — a no-op here
+///     reads as "Intercom is broken" at runtime.
 /// </remarks>
 partial class IntercomImplementation : IIntercom
 {

@@ -1,15 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- net9.0-android;net9.0-ios;net10.0-android;net10.0-ios — see the TFM matrix note in
-         Directory.Build.props. The platform-specific source globs below key off the
-         platform part of the TFM, not the band, so they need no change. -->
-    <TargetFrameworks>$(IntercomPluginTargetFrameworks)</TargetFrameworks>
+    <!-- Plain net9.0/net10.0 assets carry the contract for shared libraries; the Android and
+         iOS assets carry the native implementation. See the TFM matrix note in
+         Directory.Build.props. The platform-specific source globs key off the platform part
+         of the TFM, not the band. -->
+    <!-- Tests and other platform-neutral consumers can override the full matrix without
+         restoring Android or iOS workloads. Package builds leave this empty and ship every
+         platform plus the plain .NET contract assets. -->
+    <TargetFrameworks Condition="'$(IntercomTargetFrameworks)' == ''">$(IntercomPluginTargetFrameworks);$(IntercomCoreTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IntercomTargetFrameworks)' != ''">$(IntercomTargetFrameworks)</TargetFrameworks>
 
-    <SingleProject>true</SingleProject>
+    <SingleProject Condition="$(TargetFramework.Contains('-'))">true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <UseMaui>true</UseMaui>
+    <UseMaui Condition="$(TargetFramework.Contains('-'))">true</UseMaui>
 
     <!-- Platform Support -->
 
@@ -90,16 +95,26 @@
     <Compile Remove="**\*.net.cs" />
     <None Include="**\*.net.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
   </ItemGroup>
+  <!-- The builder extension depends on MAUI and belongs only in the platform assets. The
+       contract, models and generic fallback remain available to ordinary net9.0/net10.0
+       libraries. -->
+  <ItemGroup Condition="$(TargetFramework.StartsWith('net')) == true AND $(TargetFramework.EndsWith('.0')) == true AND $(TargetFramework.Contains('-')) != true">
+    <Compile Remove="Intercom.BuilderExtensions.cs" />
+    <None Include="Intercom.BuilderExtensions.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.39">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(IntercomConfigurationAbstractionsVersion)" />
     <PackageReference Include="MinVer" Version="8.0.0-alpha.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-')) == true">
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">

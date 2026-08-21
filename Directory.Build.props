@@ -65,6 +65,10 @@
   <PropertyGroup>
     <IntercomIosTargetFrameworks Condition="'$(IntercomIosTargetFrameworks)' == ''">net9.0-ios;net10.0-ios</IntercomIosTargetFrameworks>
     <IntercomAndroidTargetFrameworks Condition="'$(IntercomAndroidTargetFrameworks)' == ''">net9.0-android;net10.0-android</IntercomAndroidTargetFrameworks>
+    <!-- Plain .NET assets let application-core projects depend on the public contract without
+         taking a dependency on an Android or iOS reference assembly. A MAUI head still gets
+         the platform implementation because NuGet selects the more-specific platform asset. -->
+    <IntercomCoreTargetFrameworks Condition="'$(IntercomCoreTargetFrameworks)' == ''">net9.0;net10.0</IntercomCoreTargetFrameworks>
     <IntercomPluginTargetFrameworks Condition="'$(IntercomPluginTargetFrameworks)' == ''">net9.0-android;net9.0-ios;net10.0-android;net10.0-ios</IntercomPluginTargetFrameworks>
   </PropertyGroup>
 
@@ -90,6 +94,8 @@
          iOS workload pack instead. -->
     <IntercomMauiVersionNet9>9.0.0</IntercomMauiVersionNet9>
     <MauiVersion Condition="$(TargetFramework.StartsWith('net9.0'))">$(IntercomMauiVersionNet9)</MauiVersion>
+    <IntercomConfigurationAbstractionsVersion Condition="$(TargetFramework.StartsWith('net9.0'))">9.0.0</IntercomConfigurationAbstractionsVersion>
+    <IntercomConfigurationAbstractionsVersion Condition="'$(IntercomConfigurationAbstractionsVersion)' == ''">10.0.0</IntercomConfigurationAbstractionsVersion>
   </PropertyGroup>
 
   <!-- NETSDK1202: "the workload 'net9.0-android' is out of support". Known and

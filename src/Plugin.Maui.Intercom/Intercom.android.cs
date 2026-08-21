@@ -33,6 +33,11 @@ partial class IntercomImplementation : IIntercom
         ?? throw new IntercomException(
             "No Android Application context is available yet. Call Initialize after the app's Application has been created.");
 
+    private static string? ReadString(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.String
+            ? value.GetString()
+            : null;
+
     // ── Capability ──────────────────────────────────────────────────────────
 
     public bool IsSupported => true;
@@ -248,7 +253,7 @@ partial class IntercomImplementation : IIntercom
 
     public Task<IReadOnlyList<HelpCenterCollection>> FetchHelpCenterCollectionsAsync(CancellationToken cancellationToken = default)
     {
-        var callback = new JsonCallback<IReadOnlyList<HelpCenterCollection>>(ParseCollections, cancellationToken);
+        var callback = new JsonCallback<IReadOnlyList<HelpCenterCollection>>(HelpCenterJson.ParseCollections, cancellationToken);
         IntercomSdk.FetchHelpCenterCollections(callback);
         return callback.Task;
     }
@@ -257,7 +262,7 @@ partial class IntercomImplementation : IIntercom
     {
         ArgumentException.ThrowIfNullOrEmpty(collectionId);
 
-        var callback = new JsonCallback<HelpCenterCollectionContent>(ParseCollectionContent, cancellationToken);
+        var callback = new JsonCallback<HelpCenterCollectionContent>(HelpCenterJson.ParseCollectionContent, cancellationToken);
         IntercomSdk.FetchHelpCenterCollection(collectionId, callback);
         return callback.Task;
     }
@@ -266,7 +271,7 @@ partial class IntercomImplementation : IIntercom
     {
         ArgumentException.ThrowIfNullOrEmpty(searchTerm);
 
-        var callback = new JsonCallback<IReadOnlyList<HelpCenterArticleSearchResult>>(ParseSearchResults, cancellationToken);
+        var callback = new JsonCallback<IReadOnlyList<HelpCenterArticleSearchResult>>(HelpCenterJson.ParseSearchResults, cancellationToken);
         IntercomSdk.SearchHelpCenter(searchTerm, callback);
         return callback.Task;
     }
@@ -390,7 +395,7 @@ partial class IntercomImplementation : IIntercom
                 continue;
             }
 
-            map[key] = ToJavaValue(value, key, paramName);
+            map[key] = ToJavaValue(IntercomMetadata.Normalize(value, key, paramName));
         }
 
         return map;
@@ -399,104 +404,20 @@ partial class IntercomImplementation : IIntercom
     // Intercom stores custom attributes and event metadata as typed values, so the boxed
     // Java type has to match: sending "42" where a number is expected changes the attribute's
     // type on the workspace.
-    private static Object ToJavaValue(object value, string key, string paramName) => value switch
+    private static Object ToJavaValue(IntercomMetadataValue value) => value.Type switch
     {
-        string s => new String(s),
-        bool b => Boolean.ValueOf(b),
-        int i => Integer.ValueOf(i),
-        long l => Long.ValueOf(l),
-        short s => Integer.ValueOf(s),
-        byte b => Integer.ValueOf(b),
-        float f => Double.ValueOf(f),
-        double d => Double.ValueOf(d),
-        decimal m => Double.ValueOf((double)m),
-        DateTimeOffset dto => Long.ValueOf(dto.ToUnixTimeSeconds()),
-        DateTime dt => Long.ValueOf(new DateTimeOffset(dt.ToUniversalTime()).ToUnixTimeSeconds()),
-        _ => throw new ArgumentException(
-            $"'{paramName}[\"{key}\"]' is a {value.GetType().Name}. Intercom accepts strings, numbers, booleans and dates.",
-            paramName)
+        IntercomMetadataType.String => new String((string)value.Value),
+        IntercomMetadataType.Boolean => Boolean.ValueOf((bool)value.Value),
+        IntercomMetadataType.Int32 => Integer.ValueOf((int)value.Value),
+        IntercomMetadataType.Int64 => Long.ValueOf((long)value.Value),
+        IntercomMetadataType.Int16 => Integer.ValueOf((short)value.Value),
+        IntercomMetadataType.Byte => Integer.ValueOf((byte)value.Value),
+        IntercomMetadataType.Single => Double.ValueOf((float)value.Value),
+        IntercomMetadataType.Double => Double.ValueOf((double)value.Value),
+        IntercomMetadataType.Decimal => Double.ValueOf((double)(decimal)value.Value),
+        IntercomMetadataType.Timestamp => Long.ValueOf(((DateTimeOffset)value.Value).ToUnixTimeSeconds()),
+        _ => throw new ArgumentOutOfRangeException(nameof(value))
     };
-
-    // ── JSON parsing ────────────────────────────────────────────────────────
-
-    private static string? ReadString(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.String
-            ? value.GetString()
-            : null;
-
-    private static int ReadInt(JsonElement element, string name) =>
-        element.TryGetProperty(name, out var value) && value.ValueKind is JsonValueKind.Number
-            ? value.GetInt32()
-            : 0;
-
-    private static IReadOnlyList<HelpCenterCollection> ParseCollections(string json)
-    {
-        using var document = JsonDocument.Parse(json);
-        return [.. document.RootElement.EnumerateArray().Select(ParseCollection)];
-    }
-
-    private static HelpCenterCollection ParseCollection(JsonElement element) => new()
-    {
-        Id = ReadString(element, "id") ?? string.Empty,
-        Title = ReadString(element, "title") ?? string.Empty,
-        Summary = ReadString(element, "summary"),
-        ArticleCount = ReadInt(element, "articleCount"),
-        CollectionCount = ReadInt(element, "collectionCount")
-    };
-
-    private static HelpCenterArticle ParseArticle(JsonElement element) => new()
-    {
-        ArticleId = ReadString(element, "articleId") ?? string.Empty,
-        Title = ReadString(element, "title") ?? string.Empty
-    };
-
-    private static HelpCenterCollectionContent ParseCollectionContent(string json)
-    {
-        using var document = JsonDocument.Parse(json);
-        var root = document.RootElement;
-
-        return new HelpCenterCollectionContent
-        {
-            Id = ReadString(root, "id") ?? string.Empty,
-            Title = ReadString(root, "title") ?? string.Empty,
-            Summary = ReadString(root, "summary"),
-            ArticleCount = ReadInt(root, "articleCount"),
-            Articles = [.. root.GetProperty("articles").EnumerateArray().Select(ParseArticle)],
-            Sections =
-            [
-                .. root.GetProperty("sections").EnumerateArray().Select(section => new HelpCenterSection
-                {
-                    Title = ReadString(section, "title") ?? string.Empty,
-                    Articles = [.. section.GetProperty("articles").EnumerateArray().Select(ParseArticle)]
-                })
-            ],
-            SubCollections = [.. root.GetProperty("subCollections").EnumerateArray().Select(ParseCollection)],
-            Authors =
-            [
-                .. root.GetProperty("authors").EnumerateArray().Select(author => new HelpCenterArticleAuthor
-                {
-                    AuthorId = ReadString(author, "authorId") ?? string.Empty,
-                    DisplayName = ReadString(author, "displayName") ?? string.Empty,
-                    AvatarUrl = ReadString(author, "avatarUrl")
-                })
-            ]
-        };
-    }
-
-    private static IReadOnlyList<HelpCenterArticleSearchResult> ParseSearchResults(string json)
-    {
-        using var document = JsonDocument.Parse(json);
-        return
-        [
-            .. document.RootElement.EnumerateArray().Select(element => new HelpCenterArticleSearchResult
-            {
-                ArticleId = ReadString(element, "articleId") ?? string.Empty,
-                Title = ReadString(element, "title") ?? string.Empty,
-                Summary = ReadString(element, "summary"),
-                MatchingSnippet = ReadString(element, "matchingSnippet")
-            })
-        ];
-    }
 
     // ── Callback bridges ────────────────────────────────────────────────────
 

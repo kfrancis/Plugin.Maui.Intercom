@@ -103,7 +103,7 @@ jobs:
           global-json-file: 'global.json'
 
       - name: Run tests
-        run: dotnet test src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj -c Release
+        run: dotnet run --project src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.csproj -c Release -p:IntercomTargetFrameworks=net10.0
 
   # ──────────────────────────────────────────────────────────────────────────
   version:

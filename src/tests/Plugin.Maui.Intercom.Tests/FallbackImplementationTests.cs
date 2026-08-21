@@ -6,11 +6,6 @@ namespace Plugin.Maui.Intercom.Tests;
 ///     Every <see cref="IIntercom" /> member must be present in the generic .NET fallback and
 ///     must throw rather than quietly do nothing.
 /// </summary>
-/// <remarks>
-///     The fallback is not compiled into the shipped package, so nothing else would notice a
-///     member that was added to the interface and forgotten here — until a unit-test host or
-///     design-time build picked it up and got a silent no-op.
-/// </remarks>
 public sealed class FallbackImplementationTests
 {
     [Test]
@@ -55,6 +50,13 @@ public sealed class FallbackImplementationTests
         await Assert.That(Intercom.Default.IsSupported).IsFalse();
 
     [Test]
-    public async Task DefaultIsASingleton() =>
-        await Assert.That(Intercom.Default).IsSameReferenceAs(Intercom.Default);
+    public async Task DefaultIsASingleton()
+    {
+        var first = Intercom.Default;
+        var implementations = new IIntercom[64];
+
+        Parallel.For(0, implementations.Length, i => implementations[i] = Intercom.Default);
+
+        await Assert.That(implementations.All(implementation => ReferenceEquals(implementation, first))).IsTrue();
+    }
 }
