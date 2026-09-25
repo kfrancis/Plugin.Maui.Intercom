@@ -363,7 +363,10 @@ if [[ ! -f "$APP_BUNDLE/Frameworks/Intercom.framework/PrivacyInfo.xcprivacy" ]];
   echo "ERROR: PrivacyInfo.xcprivacy missing from embedded Intercom.framework."; fail=1
 fi
 
-for bundle in Intercom.bundle IntercomTranslations.bundle InterBlocksAssets.bundle; do
+# Intercom iOS 19.8 dropped InterBlocksAssets.bundle and folded its asset
+# catalog into the framework's top-level Assets.car (the binary no longer
+# names the bundle), so that catalog is what has to survive embedding now.
+for bundle in Intercom.bundle IntercomTranslations.bundle Assets.car; do
   if [[ ! -e "$APP_BUNDLE/Frameworks/Intercom.framework/$bundle" ]]; then
     echo "ERROR: $bundle missing from embedded Intercom.framework."; fail=1
   fi

@@ -1,6 +1,6 @@
 {
-  "androidSdkVersion": "18.8.0",
-  "iosSdkVersion": "19.7.2",
+  "androidSdkVersion": "18.9.4",
+  "iosSdkVersion": "19.8.3",
   "symbols": {
     "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
       "status": "covered",

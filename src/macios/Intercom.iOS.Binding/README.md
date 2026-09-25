@@ -11,7 +11,7 @@ Platform dependency of [Plugin.Maui.Intercom](https://www.nuget.org/packages/Plu
 
 ## Versions
 
-- Intercom iOS SDK: 19.7.2 (pinned in `Directory.Build.props`, `IntercomIosSdkVersion`).
+- Intercom iOS SDK: 19.8.3 (pinned in `Directory.Build.props`, `IntercomIosSdkVersion`).
 - Minimum iOS: 15.0.
 - Target frameworks: `net9.0-ios` and `net10.0-ios` (packed per band as `lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`).
 

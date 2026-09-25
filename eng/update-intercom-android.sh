@@ -102,21 +102,27 @@ fetch "$CENTRAL/io/intercom/android/nexus-client-android/$NEXUS_VERSION/nexus-cl
 echo "  nexus-client-android-$NEXUS_VERSION.aar"
 # paging-compose is a KMP facade from 3.4.x on: the facade AAR holds only a
 # manifest and a licence, and the classes live in paging-compose-android.
-fetch "$GOOGLE/androidx/paging/paging-compose-android/$PAGING_VERSION/paging-compose-android-$PAGING_VERSION.aar" \
-      "$WORK/paging-compose-android-$PAGING_VERSION.aar"
-echo "  paging-compose-android-$PAGING_VERSION.aar"
+# paging-common is the same, and Xamarin.AndroidX.Paging.Common packs only the
+# facade, so its -android sibling is vendored too. androidx.paging is an atomic
+# library group, so both share paging-compose's version.
+for a in paging-compose-android paging-common-android; do
+  fetch "$GOOGLE/androidx/paging/$a/$PAGING_VERSION/$a-$PAGING_VERSION.aar" \
+        "$WORK/$a-$PAGING_VERSION.aar"
+  echo "  $a-$PAGING_VERSION.aar"
+done
 
 echo ""
 echo "Replacing vendored AARs"
 for old in "$JARS"/intercom-sdk-*-"$OLD_VERSION".aar "$JARS"/nexus-client-android-*.aar \
-           "$JARS"/paging-compose*.aar; do
+           "$JARS"/paging-compose*.aar "$JARS"/*paging-common-android-*.aar; do
   [[ -e "$old" ]] || continue
   rm -f "$old"
   echo "  - $(basename "$old")"
 done
 for new in "$WORK"/intercom-sdk-*-"$VERSION".aar \
            "$WORK/nexus-client-android-$NEXUS_VERSION.aar" \
-           "$WORK/paging-compose-android-$PAGING_VERSION.aar"; do
+           "$WORK/paging-compose-android-$PAGING_VERSION.aar" \
+           "$WORK/paging-common-android-$PAGING_VERSION.aar"; do
   cp "$new" "$JARS/"
   echo "  + $(basename "$new")"
 done
@@ -139,6 +145,8 @@ text = re.sub(r'(nexus-client-android-)[0-9][0-9.]*(\.aar)',
               lambda m: m.group(1) + nexus + m.group(2), text)
 text = re.sub(r'(paging-compose(?:-android)?-?)[0-9][0-9.]*(\.aar)',
               lambda m: 'paging-compose-android-' + paging + m.group(2), text)
+text = re.sub(r'(?:androidx\.paging\.)?paging-common-android-[0-9][0-9.]*(\.aar)',
+              lambda m: 'paging-common-android-' + paging + m.group(1), text)
 open(path, 'w', encoding='utf-8', newline='\n').write(text)
 print("Rewrote AAR file names in %s" % path)
 PY
