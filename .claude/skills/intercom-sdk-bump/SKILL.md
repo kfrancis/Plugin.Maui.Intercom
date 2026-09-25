@@ -111,6 +111,8 @@ This is the long half.
 - **Artifacts that split into a KMP facade.** `androidx.paging:paging-compose` did this at
   3.4.x: the facade AAR holds only a manifest, and the classes moved to
   `paging-compose-android`. If a vendored AAR suddenly drops to a few KB, that is why.
+  `paging-common` is the same, and `Xamarin.AndroidX.Paging.Common` packs only its facade,
+  so the updater vendors `paging-common-android` too (it did not before 18.9.4).
 - **The net9 band.** `Directory.Build.props` pins MAUI 9 for net9 inner builds, and the
   binding csproj pins AndroidX Navigation per band, because Navigation 2.9.x split each
   package into a facade plus `.Android` and the assembly MAUI 9 binds against stops
@@ -138,8 +140,12 @@ dotnet test src/tests/Plugin.Maui.Intercom.Tests/Plugin.Maui.Intercom.Tests.cspr
 Then the check `build.ps1` does not do, and the one that catches AndroidX/MAUI 9 breakage:
 
 ```bash
-dotnet build src/sample/MauiSample.csproj -c Release -f net9.0-android --configfile nuget.local.config
+IntercomPluginTargetFrameworks='net9.0-android;net10.0-android' IntercomSampleTargetFrameworks='net9.0-android' \
+  dotnet build src/sample/MauiSample.csproj -c Release -f net9.0-android --configfile nuget.local.config
 ```
+
+The sample defaults to net10 only, and the plugin to all four TFMs; without both overrides
+this fails with NETSDK1005 or tries to restore a net9.0-ios binding.
 
 `build.ps1` re-packs the binding at the same version each run, so NuGet's extracted copy
 goes stale. If the plugin fails with `CS0117: 'IntercomSdk' does not contain a definition
