@@ -109,7 +109,7 @@
        Change these in one place; eng/ scripts and CI read them from here. -->
   <PropertyGroup>
     <!-- Intercom iOS SDK version vendored at src/macios/Intercom.iOS.Binding/Intercom.xcframework -->
-    <IntercomIosSdkVersion>19.7.2</IntercomIosSdkVersion>
+    <IntercomIosSdkVersion>19.8.3</IntercomIosSdkVersion>
     <!-- Intercom Android SDK version vendored in src/android/Intercom.Android.Binding/Jars -->
     <IntercomAndroidSdkVersion>18.8.0</IntercomAndroidSdkVersion>
     <!-- Ably realtime closure vendored in src/android/Intercom.Android.Ably/Jars.
