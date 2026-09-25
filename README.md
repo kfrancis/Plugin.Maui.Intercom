@@ -45,8 +45,8 @@ The platform binding packages (`Plugin.Maui.Intercom.iOS.Binding`, `Plugin.Maui.
 
 | Platform | Intercom SDK Version |
 |----------|---------------------|
-| Android  | 18.8.0              |
-| iOS      | 19.7.2              |
+| Android  | 18.9.4              |
+| iOS      | 19.8.3              |
 
 ### Optional: Android realtime (`Plugin.Maui.Intercom.Android.Ably`)
 
@@ -445,7 +445,7 @@ The main package declares the binding packages as platform-conditional dependenc
 
 ### How the iOS binding works
 
-- The exact Intercom `Intercom.xcframework` (19.7.2) is **checked into the repository** at `src/macios/Intercom.iOS.Binding/` — ordinary builds never download anything. The SHA-256 of the official release archive is recorded in `eng/intercom-ios.sha256`.
+- The exact Intercom `Intercom.xcframework` (19.8.3) is **checked into the repository** at `src/macios/Intercom.iOS.Binding/` — ordinary builds never download anything. The SHA-256 of the official release archive is recorded in `eng/intercom-ios.sha256`.
 - `src/macios/Intercom.iOS.Binding` uses the `SwiftBindings.Sdk` MSBuild project SDK (version pinned in `global.json` under `msbuild-sdks`). Intercom is a mixed Swift/Objective-C framework whose complete public API is exported through its ObjC umbrella header, so the binding uses the generator's pure-ObjC pipeline (`SwiftFrameworkType=ObjC` + `IsBindingProject=true`): at build time on macOS it parses the framework headers with clang, generates the bgen `ApiDefinition`, and compiles a single binding assembly (namespace `IntercomBinding`).
 - The whole surface is generated — there is no hand-written supplement. Up to SwiftBindings.Sdk 0.17.0 the generator's `-fmodules` clang retry made clang build Intercom as a module, which collapsed each `#import <Intercom/SiblingHeader.h>` into a module import and silently dropped every declaration behind it (`ICMUserAttributes`, `IntercomContent`, the help-center types, the `Space`/`ContentType` NS_ENUMs). Two supplement files covered that gap; [SwiftBindings 0.18.0](https://github.com/justinwojo/swift-dotnet-bindings/releases/tag/sdk-v0.18.0) passes `-fmodule-name` on the retry so those headers parse textually, and the supplements were removed.
 - The package uses the standard iOS binding layout, once per band (`lib/net9.0-ios18.0/` and `lib/net10.0-ios26.0/`): the managed assembly plus `Intercom.iOS.Binding.resources.zip` beside it containing the full `Intercom.xcframework` (device + simulator slices, resource bundles, `PrivacyInfo.xcprivacy`). The .NET iOS SDK unpacks it in consuming apps and applies the `NativeReference` automatically — embedding, linking and signing included.
