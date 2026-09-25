@@ -188,10 +188,10 @@
       <Version>1.10.0.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat">
-      <Version>1.7.1.4</Version>
+      <Version>1.8.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat.AppCompatResources">
-      <Version>1.7.1.4</Version>
+      <Version>1.8.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Collection">
       <Version>1.6.0.1</Version>
@@ -236,10 +236,10 @@
       <Version>1.4.2.3</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Fragment">
-      <Version>1.8.9.3</Version>
+      <Version>1.9.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx">
-      <Version>1.8.9.4</Version>
+      <Version>1.9.0</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Legacy.Support.Core.UI">
       <Version>1.0.0.33</Version>
@@ -297,10 +297,10 @@
       <Version>$(IntercomAndroidXNavigationVersion)</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Paging.Common">
-      <Version>3.4.1.1</Version>
+      <Version>3.5.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Paging.Runtime.Ktx">
-      <Version>3.4.1.1</Version>
+      <Version>3.5.1</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.ProfileInstaller.ProfileInstaller">
       <Version>1.4.1.8</Version>
@@ -356,12 +356,12 @@
     <AndroidLibrary Include="Jars\coil-gif-2.7.0.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\coil-video-2.7.0.aar" />
     <AndroidLibrary Include="Jars\coil-video-2.7.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-base-18.8.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-base-18.8.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-ui-18.8.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-ui-18.8.0.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-18.8.0.aar" />
-    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.8.0.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-base-18.9.4.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-base-18.9.4.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-ui-18.9.4.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-ui-18.9.4.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\intercom-sdk-lightcompressor-18.9.4.aar" />
+    <AndroidLibrary Include="Jars\intercom-sdk-lightcompressor-18.9.4.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\nexus-client-android-6.4.0.aar" />
     <AndroidLibrary Include="Jars\nexus-client-android-6.4.0.aar" Bind="false" Visible="false" />
     <!-- androidx.paging:paging-common and paging-compose have no Xamarin.AndroidX binding
@@ -369,10 +369,10 @@
          carries only a manifest/licence stub; the actual JVM bytecode lives in the sibling
          *-android artifact.  Pager, PagingData, PagingSource, etc. are in paging-common-android;
          the Compose integration classes are in paging-compose-android. -->
-    <AndroidLibrary Remove="Jars\androidx.paging.paging-common-android-3.4.1.aar" />
-    <AndroidLibrary Include="Jars\androidx.paging.paging-common-android-3.4.1.aar" Bind="false" Visible="false" />
-    <AndroidLibrary Remove="Jars\paging-compose-android-3.4.1.aar" />
-    <AndroidLibrary Include="Jars\paging-compose-android-3.4.1.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\paging-common-android-3.5.1.aar" />
+    <AndroidLibrary Include="Jars\paging-common-android-3.5.1.aar" Bind="false" Visible="false" />
+    <AndroidLibrary Remove="Jars\paging-compose-android-3.5.1.aar" />
+    <AndroidLibrary Include="Jars\paging-compose-android-3.5.1.aar" Bind="false" Visible="false" />
     <AndroidLibrary Remove="Jars\twig-1.3.0.aar" />
     <AndroidLibrary Include="Jars\twig-1.3.0.aar" Bind="false" Visible="false" />
 
