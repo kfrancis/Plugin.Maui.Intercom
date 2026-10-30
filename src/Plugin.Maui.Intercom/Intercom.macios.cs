@@ -120,6 +120,16 @@ partial class IntercomImplementation : IIntercom
         MainThread.BeginInvokeOnMainThread(() => NativeIntercom.SetUserJwt(jwt));
     }
 
+    public void SetUserJwtProvider(Func<Task<string?>> provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        MainThread.BeginInvokeOnMainThread(() =>
+            NativeIntercom.SetUserJwtProvider(complete =>
+                _ = UserJwtProviderBridge.ProvideAsync(provider, jwt => complete(jwt))));
+    }
+
+    public void RemoveUserJwtProvider() => MainThread.BeginInvokeOnMainThread(NativeIntercom.RemoveUserJwtProvider);
+
     public void Logout() => MainThread.BeginInvokeOnMainThread(NativeIntercom.Logout);
 
     public bool IsUserLoggedIn => NativeIntercom.IsUserLoggedIn();

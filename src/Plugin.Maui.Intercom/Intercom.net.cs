@@ -48,6 +48,10 @@ partial class IntercomImplementation : IIntercom
 
     public void SetUserJwt(string jwt) => throw new PlatformNotSupportedException(Unsupported);
 
+    public void SetUserJwtProvider(Func<Task<string?>> provider) => throw new PlatformNotSupportedException(Unsupported);
+
+    public void RemoveUserJwtProvider() => throw new PlatformNotSupportedException(Unsupported);
+
     public void Logout() => throw new PlatformNotSupportedException(Unsupported);
 
     public IntercomUserAttributes? FetchLoggedInUserAttributes() => throw new PlatformNotSupportedException(Unsupported);

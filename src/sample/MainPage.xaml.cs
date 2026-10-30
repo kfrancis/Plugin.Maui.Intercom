@@ -180,8 +180,20 @@ public partial class MainPage : ContentPage
             // Only needed when identity verification is enabled for the workspace, and only
             // done on device because this is a sample — issue these from your server instead.
             // A workspace with Messenger Security enforced rejects the hash and needs the JWT.
-            if (JwtSwitch.IsToggled)
+            if (JwtSwitch.IsToggled && JwtProviderSwitch.IsToggled)
             {
+                // Short-lived on purpose, so the provider is asked within a minute of use.
+                var lifetime = TimeSpan.FromMinutes(1);
+                Intercom.SetUserJwtProvider(() =>
+                {
+                    MainThread.BeginInvokeOnMainThread(() => SetStatus($"JWT provider asked for a fresh token at {DateTime.Now:T}"));
+                    return Task.FromResult<string?>(_options.ComputeUserJwt(email: email, lifetime: lifetime));
+                });
+                Intercom.SetUserJwt(_options.ComputeUserJwt(email: email, lifetime: lifetime));
+            }
+            else if (JwtSwitch.IsToggled)
+            {
+                Intercom.RemoveUserJwtProvider();
                 Intercom.SetUserJwt(_options.ComputeUserJwt(email: email));
             }
             else
