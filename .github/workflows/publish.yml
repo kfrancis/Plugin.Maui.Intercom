@@ -3,7 +3,7 @@
 #
 # Pipeline overview
 #   version        → single MinVer computation shared by every job
-#   android        → pack Plugin.Maui.Intercom.Android.Binding (Windows, Gradle)
+#   android        → pack Plugin.Maui.Intercom.Android.Binding (Ubuntu, Gradle)
 #   ios-binding    → pack Plugin.Maui.Intercom.iOS.Binding on macOS via swift-dotnet-bindings
 #   main-package   → pack Plugin.Maui.Intercom against the locally produced binding packages
 #   consumer-test  → clean-room MAUI app consuming ONLY the packed NuGets (simulator + device),
@@ -136,8 +136,12 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
   # ──────────────────────────────────────────────────────────────────────────
+  # Ubuntu, not Windows: nothing in the binding build is Windows-bound, and on
+  # windows-latest `dotnet workload install` reconciled the image's preinstalled
+  # workloads for 2.5-11 minutes per run, on the pipeline's critical path. The packages
+  # are OS-neutral; Windows packing is still exercised locally by build.ps1.
   android:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: [ version, api-coverage, tests ]
     permissions:
@@ -153,13 +157,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # Each band compiles against its own platform jar (net9.0-android → 35,
+      # net10.0-android → 36, and the Gradle module's compileSdk 36). Install both
+      # explicitly rather than trusting the image's preinstalled set; a no-op when present.
+      - name: Ensure Android SDK platforms
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "platforms;android-36" > /dev/null
+          ls "$ANDROID_HOME/platforms"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           global-json-file: 'global.json'
 
+      # Both projects here are plain Android binding libraries (no UseMaui), so the
+      # android workload is all they need.
       - name: Install Android workload
-        run: dotnet workload install maui-android
+        run: dotnet workload install android
 
       - name: Cache NuGet packages
         uses: actions/cache@v4

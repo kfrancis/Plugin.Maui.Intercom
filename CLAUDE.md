@@ -205,7 +205,7 @@ Three Android-specific traps, all fixed and all easy to reintroduce:
 - All three packages (`Plugin.Maui.Intercom`, `.iOS.Binding`, `.Android.Binding`) share one version (`Directory.Build.props` / `-p:Version`).
 - The main package declares the bindings as platform-conditional NuGet dependencies; consumers must never need to reference a binding directly.
 - Pack with explicit `dotnet pack`; `GeneratePackageOnBuild` is off everywhere.
-- CI (`.github/workflows/publish.yml`): api-coverage (ubuntu) + version → android (Windows) + ios-binding (macos-26, Xcode 26.6) → main-package → consumer-test (clean-room) → deploy (release only, pushes the exact validated artifacts).
+- CI (`.github/workflows/publish.yml`): api-coverage (ubuntu) + version → android (ubuntu) + ios-binding (macos-26, Xcode 26.6) → main-package → consumer-test (clean-room) → deploy (release only, pushes the exact validated artifacts).
 - The plugin consumes both bindings as packages, never project references, so a change to `src/android/native` is invisible until the binding is packed. `build.ps1` does that locally (packs into `artifacts/local-feed`, restores against it). It also overrides `IntercomIosBindingVersion` with an already-published version, because the iOS binding cannot be built off macOS — never pass that override when packing.
 
 ## Configuration Notes
