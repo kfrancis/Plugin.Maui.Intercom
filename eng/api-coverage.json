@@ -1,5 +1,5 @@
 {
-  "androidSdkVersion": "18.9.4",
+  "androidSdkVersion": "18.11.0",
   "iosSdkVersion": "19.9.2",
   "symbols": {
     "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
@@ -73,6 +73,10 @@
     "android:io.intercom.android.sdk.Intercom#addUnreadConversationCountListener(UnreadConversationCountListener)": {
       "status": "covered",
       "member": "IIntercom.UnreadConversationCountChanged"
+    },
+    "android:io.intercom.android.sdk.Intercom#applyRefreshedUserJwt$intercom_sdk_base_release(String,String,String)": {
+      "status": "skipped",
+      "reason": "Kotlin `internal` (name-mangled with the module suffix); public in bytecode only. The SDK's own JWT-refresh plumbing behind setUserJwtProvider."
     },
     "android:io.intercom.android.sdk.Intercom#changeWorkspace(String,String)": {
       "status": "covered",
@@ -194,6 +198,10 @@
       "status": "covered",
       "member": "IIntercom.UnreadConversationCountChanged"
     },
+    "android:io.intercom.android.sdk.Intercom#removeUserJwtProvider()": {
+      "status": "covered",
+      "member": "IIntercom.RemoveUserJwtProvider"
+    },
     "android:io.intercom.android.sdk.Intercom#reset()": {
       "status": "skipped",
       "reason": "Clears the local cache without ending the session. Logout is the supported teardown and reset() has no iOS counterpart."
@@ -237,6 +245,10 @@
     "android:io.intercom.android.sdk.Intercom#setUserJwt(String)": {
       "status": "covered",
       "member": "IIntercom.SetUserJwt"
+    },
+    "android:io.intercom.android.sdk.Intercom#setUserJwtProvider(IntercomUserJwtProvider)": {
+      "status": "covered",
+      "member": "IIntercom.SetUserJwtProvider"
     },
     "android:io.intercom.android.sdk.Intercom#suppressProactiveContent(List)": {
       "status": "covered",
@@ -385,6 +397,18 @@
     "android:io.intercom.android.sdk.IntercomStatusCallback#onSuccess()": {
       "status": "skipped",
       "reason": "Callback plumbing consumed inside IntercomSdk.java; results reach the caller as Task completion or IntercomException."
+    },
+    "android:io.intercom.android.sdk.IntercomUserJwtCallback#onFailure()": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; a null or empty JWT from the IIntercom.SetUserJwtProvider delegate is answered with onFailure."
+    },
+    "android:io.intercom.android.sdk.IntercomUserJwtCallback#onSuccess(String)": {
+      "status": "skipped",
+      "reason": "Callback plumbing consumed inside IntercomSdk.java; the JWT returned by the IIntercom.SetUserJwtProvider delegate is answered with onSuccess."
+    },
+    "android:io.intercom.android.sdk.IntercomUserJwtProvider#provideUserJwt(IntercomUserJwtCallback)": {
+      "status": "skipped",
+      "reason": "Implemented inside IntercomSdk.java, which forwards each request to the IIntercom.SetUserJwtProvider delegate."
     },
     "android:io.intercom.android.sdk.UnreadConversationCountListener#onCountUpdate(int)": {
       "status": "covered",
@@ -943,7 +967,8 @@
       "member": "IIntercom.PresentMessageComposer"
     },
     "ios:Intercom+removeUserJwtProvider": {
-      "status": "todo"
+      "status": "covered",
+      "member": "IIntercom.RemoveUserJwtProvider"
     },
     "ios:Intercom+searchHelpCenter:withCompletion:": {
       "status": "covered",
@@ -994,7 +1019,8 @@
       "member": "IIntercom.SetUserJwt"
     },
     "ios:Intercom+setUserJwtProvider:": {
-      "status": "todo"
+      "status": "covered",
+      "member": "IIntercom.SetUserJwtProvider"
     },
     "ios:Intercom+suppressProactiveContent:": {
       "status": "covered",

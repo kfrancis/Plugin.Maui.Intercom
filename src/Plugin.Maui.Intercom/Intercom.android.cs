@@ -126,6 +126,14 @@ partial class IntercomImplementation : IIntercom
         IntercomSdk.SetUserJwt(jwt);
     }
 
+    public void SetUserJwtProvider(Func<Task<string?>> provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        IntercomSdk.SetUserJwtProvider(new UserJwtProvider(provider));
+    }
+
+    public void RemoveUserJwtProvider() => IntercomSdk.RemoveUserJwtProvider();
+
     public void Logout() => IntercomSdk.Logout();
 
     public bool IsUserLoggedIn => IntercomSdk.IsUserLoggedIn;
@@ -491,6 +499,12 @@ partial class IntercomImplementation : IIntercom
     private sealed class UnreadCountListener(Action<int> onCountUpdate) : Object, IIntercomUnreadCountListener
     {
         public void OnCountUpdate(int count) => onCountUpdate(count);
+    }
+
+    private sealed class UserJwtProvider(Func<Task<string?>> provider) : Object, IIntercomUserJwtProvider
+    {
+        public void ProvideUserJwt(IIntercomUserJwtCallback? callback) =>
+            _ = UserJwtProviderBridge.ProvideAsync(provider, jwt => callback?.OnComplete(jwt));
     }
 }
 #endif

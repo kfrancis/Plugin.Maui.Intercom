@@ -39,6 +39,7 @@ fi
 # less obvious message.
 REQUIRED=(
   "SetApiKey" "SetUserHash" "SetUserJwt" "SetAuthTokens"
+  "SetUserJwtProvider" "RemoveUserJwtProvider"
   "LoginUnidentifiedUserWithSuccess" "LoginUserWithUserAttributes" "Logout" "UpdateUser"
   "IsUserLoggedIn" "FetchLoggedInUserAttributes"
   "LogEventWithName"

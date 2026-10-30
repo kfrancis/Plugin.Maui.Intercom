@@ -393,6 +393,16 @@ public sealed class IntercomOptionsTests
             throw new NotSupportedException();
         }
 
+        public void SetUserJwtProvider(Func<Task<string?>> provider)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveUserJwtProvider()
+        {
+            throw new NotSupportedException();
+        }
+
         public void Logout()
         {
             throw new NotSupportedException();

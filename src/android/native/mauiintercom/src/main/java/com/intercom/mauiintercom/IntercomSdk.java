@@ -19,6 +19,8 @@ import io.intercom.android.sdk.IntercomContent;
 import io.intercom.android.sdk.IntercomError;
 import io.intercom.android.sdk.IntercomSpace;
 import io.intercom.android.sdk.IntercomStatusCallback;
+import io.intercom.android.sdk.IntercomUserJwtCallback;
+import io.intercom.android.sdk.IntercomUserJwtProvider;
 import io.intercom.android.sdk.UnreadConversationCountListener;
 import io.intercom.android.sdk.UserAttributes;
 import io.intercom.android.sdk.helpcenter.api.CollectionContentRequestCallback;
@@ -204,6 +206,36 @@ public final class IntercomSdk {
      */
     public static void setUserJwt(String jwt) {
         Intercom.client().setUserJwt(jwt);
+    }
+
+    /**
+     * Register a provider Intercom asks for a fresh JWT when the current one expires.
+     * Replaces any provider registered before.
+     * @param provider {IIntercomUserJwtProvider} Supplies the new JWT
+     */
+    public static void setUserJwtProvider(final IIntercomUserJwtProvider provider) {
+        Intercom.client().setUserJwtProvider(new IntercomUserJwtProvider() {
+            @Override
+            public void provideUserJwt(@NonNull final IntercomUserJwtCallback callback) {
+                provider.provideUserJwt(new IIntercomUserJwtCallback() {
+                    @Override
+                    public void onComplete(String jwt) {
+                        if (jwt == null || jwt.isEmpty()) {
+                            callback.onFailure();
+                        } else {
+                            callback.onSuccess(jwt);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Remove the provider registered with setUserJwtProvider.
+     */
+    public static void removeUserJwtProvider() {
+        Intercom.client().removeUserJwtProvider();
     }
 
     /**

@@ -66,6 +66,11 @@
                 <Label Text="Identity verification by JWT, not hash" VerticalOptions="Center" />
             </HorizontalStackLayout>
 
+            <HorizontalStackLayout Spacing="10">
+                <Switch x:Name="JwtProviderSwitch" />
+                <Label Text="1-minute JWTs, refreshed by a JWT provider" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
             <Entry
                 x:Name="NameEntry"
                 Placeholder="Name"
