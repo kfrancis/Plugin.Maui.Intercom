@@ -119,6 +119,12 @@ notice. That is why the `consumer-test` matrix selects Xcode per band instead of
 the workflow-wide `$XCODE_PATH`, and why `ValidateXcodeVersion=false` is the wrong
 answer there: proving a real consumer app builds is the job's entire purpose.
 
+The same trap arrives from the other side when the runner image updates its SDK: an
+unpinned `dotnet workload install` follows the image, and SDK 10.0.403's workload set
+brought a net10 iOS pack that demands Xcode 27.1, which macos-26 does not have. CI pins
+the workload set in `INTERCOM_WORKLOAD_SET` (`publish.yml`); bump it only together with
+the Xcode selections.
+
 Related: the *tooling* pack version and the `TargetPlatformVersion` are independent. The
 binding packs into `lib/net9.0-ios18.0/` (TPV 18.0, what a consumer on bare `net9.0-ios`
 resolves) while being built by the 26.5 tooling pack. A consumer at a higher TPV restores
