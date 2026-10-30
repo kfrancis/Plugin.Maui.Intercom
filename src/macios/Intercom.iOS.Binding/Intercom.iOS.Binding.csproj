@@ -135,7 +135,7 @@
     <PropertyGroup>
       <_IntercomApiDefinition>$(_SwiftBindingIntermediateDir)ApiDefinition.cs</_IntercomApiDefinition>
     </PropertyGroup>
-    <Exec Command="perl -0pi -e 's/void SetUserJwtProvider\(Action&lt;Action&lt;(?:string|NSString)\??&gt;&gt; provider\);/void SetUserJwtProvider(IntercomUserJwtProviderHandler provider);/ and $_ .= &quot;\nnamespace IntercomBinding\n{\n    public delegate void IntercomUserJwtCompletion([ObjCRuntime.NullAllowed] string jwt);\n\n    public delegate void IntercomUserJwtProviderHandler([ObjCRuntime.BlockCallback] IntercomUserJwtCompletion completion);\n}\n&quot;' &quot;$(_IntercomApiDefinition)&quot;" />
+    <Exec Command="perl -0pi -e 's/void SetUserJwtProvider\(Action&lt;Action&lt;(?:string|NSString)\??&gt;&gt; provider\);/void SetUserJwtProvider(IntercomUserJwtProviderHandler provider);/ and $_ .= &quot;\nnamespace IntercomBinding\n{\n    public delegate void IntercomUserJwtCompletion([NullAllowed] string jwt);\n\n    public delegate void IntercomUserJwtProviderHandler([BlockCallback] IntercomUserJwtCompletion completion);\n}\n&quot;' &quot;$(_IntercomApiDefinition)&quot;" />
     <Exec Command="grep -n 'Action&lt;Action&lt;\|Func&lt;Action&lt;\|Action&lt;Func&lt;' &quot;$(_IntercomApiDefinition)&quot;"
           IgnoreExitCode="true" ConsoleToMSBuild="true">
       <Output TaskParameter="ExitCode" PropertyName="_IntercomNestedBlockGrepExit" />
