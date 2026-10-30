@@ -1,6 +1,6 @@
 {
   "androidSdkVersion": "18.9.4",
-  "iosSdkVersion": "19.8.3",
+  "iosSdkVersion": "19.9.2",
   "symbols": {
     "android:io.intercom.android.sdk.AuthToken#<init>(String,String)": {
       "status": "covered",
@@ -942,6 +942,9 @@
       "status": "covered",
       "member": "IIntercom.PresentMessageComposer"
     },
+    "ios:Intercom+removeUserJwtProvider": {
+      "status": "todo"
+    },
     "ios:Intercom+searchHelpCenter:withCompletion:": {
       "status": "covered",
       "member": "IIntercom.SearchHelpCenterAsync"
@@ -989,6 +992,9 @@
     "ios:Intercom+setUserJwt:": {
       "status": "covered",
       "member": "IIntercom.SetUserJwt"
+    },
+    "ios:Intercom+setUserJwtProvider:": {
+      "status": "todo"
     },
     "ios:Intercom+suppressProactiveContent:": {
       "status": "covered",
