@@ -92,6 +92,8 @@ CLASS_GLOBS=(
   'io/intercom/android/sdk/IntercomContent$*.class'
   'io/intercom/android/sdk/IntercomError.class'
   'io/intercom/android/sdk/IntercomStatusCallback.class'
+  'io/intercom/android/sdk/IntercomUserJwtProvider.class'
+  'io/intercom/android/sdk/IntercomUserJwtCallback.class'
   'io/intercom/android/sdk/UnreadConversationCountListener.class'
   'io/intercom/android/sdk/UserAttributes.class'
   'io/intercom/android/sdk/UserAttributes$Builder.class'

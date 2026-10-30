@@ -113,6 +113,38 @@
        removed with the 0.18.1 upgrade. See
        https://github.com/justinwojo/swift-dotnet-bindings/issues/44 -->
 
+  <!-- Nested-block workaround (Intercom iOS 19.9.0+).
+       `+setUserJwtProvider:` takes a block whose parameter is itself a block. The generator
+       names only typedef'd blocks, so it emits this inline one as Action<Action<string>>, and
+       bgen cannot write a trampoline for a generic delegate nested in another: it puts the
+       CLR name (Action`1) in Trampolines.g.cs, which fails to compile. Every build of this
+       binding fails that way, whether or not the plugin calls the method.
+
+       This rewrites that one parameter to two named delegates in the generated
+       ApiDefinition.cs before bgen reads it. [BlockCallback] marks the inner parameter as an
+       ObjC block that managed code invokes. The rewrite is idempotent, which matters because
+       the generator skips regeneration when its inputs are unchanged. Any *other* nested
+       block fails the build here with a clear message instead of in bgen's output.
+
+       Remove this when the generator names nested blocks itself; the rewrite then matches
+       nothing and the check below passes. -->
+  <Target Name="_RewriteNestedBlockParameters"
+          AfterTargets="_IncludeGeneratedSwiftBindings"
+          BeforeTargets="ResolveProjectReferences"
+          Condition="Exists('$(_SwiftBindingIntermediateDir)ApiDefinition.cs')">
+    <PropertyGroup>
+      <_IntercomApiDefinition>$(_SwiftBindingIntermediateDir)ApiDefinition.cs</_IntercomApiDefinition>
+    </PropertyGroup>
+    <Exec Command="perl -0pi -e 's/void SetUserJwtProvider\(Action&lt;Action&lt;(?:string|NSString)\??&gt;&gt; provider\);/void SetUserJwtProvider(IntercomUserJwtProviderHandler provider);/ and $_ .= &quot;\nnamespace IntercomBinding\n{\n    public delegate void IntercomUserJwtCompletion([NullAllowed] string jwt);\n\n    public delegate void IntercomUserJwtProviderHandler([BlockCallback] IntercomUserJwtCompletion completion);\n}\n&quot;' &quot;$(_IntercomApiDefinition)&quot;" />
+    <Exec Command="grep -n 'Action&lt;Action&lt;\|Func&lt;Action&lt;\|Action&lt;Func&lt;' &quot;$(_IntercomApiDefinition)&quot;"
+          IgnoreExitCode="true" ConsoleToMSBuild="true">
+      <Output TaskParameter="ExitCode" PropertyName="_IntercomNestedBlockGrepExit" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="_IntercomNestedBlocks" />
+    </Exec>
+    <Error Condition="'$(_IntercomNestedBlockGrepExit)' == '0'"
+           Text="ApiDefinition.cs still declares a block nested in another block, which bgen cannot compile: $(_IntercomNestedBlocks). Extend _RewriteNestedBlockParameters in Intercom.iOS.Binding.csproj to name it." />
+  </Target>
+
   <!-- Package content -->
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />

@@ -136,6 +136,41 @@ public interface IIntercom
     void SetUserJwt(string jwt);
 
     /// <summary>
+    ///     Registers a callback Intercom uses to obtain a fresh user JWT when the current one
+    ///     is about to expire or has expired.
+    /// </summary>
+    /// <param name="provider">
+    ///     Returns the new JWT, or <see langword="null" /> when none can be supplied. Replaces
+    ///     any provider registered before.
+    /// </param>
+    /// <remarks>
+    ///     <para>
+    ///         Requests Intercom sent with an expired JWT are retried once with the new token
+    ///         instead of failing, and the Messenger reloads without having to be reopened.
+    ///         Without a provider, a JWT that expires mid-session fails every request until the
+    ///         app calls <see cref="SetUserJwt" /> again.
+    ///     </para>
+    ///     <para>
+    ///         Intercom never asks again while a request is pending. Returning
+    ///         <see langword="null" /> or an empty string, or throwing, all answer "no JWT":
+    ///         the requests rejected for an expired JWT then fail. The provider is invoked from
+    ///         a native callback and may run on any thread; issue the JWT from your server.
+    ///         On iOS an answer that takes longer than 10 seconds no longer rescues the
+    ///         requests waiting on it, though it is still stored.
+    ///     </para>
+    /// </remarks>
+    void SetUserJwtProvider(Func<Task<string?>> provider);
+
+    /// <summary>
+    ///     Removes the provider registered with <see cref="SetUserJwtProvider" />.
+    /// </summary>
+    /// <remarks>
+    ///     Requests rejected for an expired JWT then fail until <see cref="SetUserJwt" /> is
+    ///     called with a new one.
+    /// </remarks>
+    void RemoveUserJwtProvider();
+
+    /// <summary>
     ///     Logs the current user out, dismissing any Intercom UI and clearing the local cache.
     /// </summary>
     void Logout();
